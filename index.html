@@ -1,0 +1,2740 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>慧诊间 - 多角色权限管理 · 仪表板</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      overflow-x: hidden;
+    }
+    .top-header {
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 4px rgba(0,0,0,.02);
+    }
+    .logo-section { display: flex; align-items: center; gap: 12px; }
+    .logo-icon {
+      width: 32px; height: 32px; background: #dc2626; border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 700; font-size: 16px;
+    }
+    .logo-title { font-size: 15px; font-weight: 600; color: #111827; }
+    .logo-subtitle { font-size: 11px; color: #6b7280; }
+    .top-nav-icons { display: flex; gap: 16px; align-items: center; }
+    .nav-icon {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: background .2s;
+    }
+    .nav-icon:hover { background: #f3f4f6; }
+    .nav-icon.active { color: #dc2626; }
+    .nav-icon span { font-size: 10px; color: #6b7280; }
+    .nav-icon.active span { color: #dc2626; }
+    .icon-circle {
+      width: 34px; height: 34px; border-radius: 50%; background: #f3f4f6;
+      display: flex; align-items: center; justify-content: center; font-size: 16px;
+    }
+    .nav-icon.active .icon-circle { background: #fee2e2; color: #dc2626; }
+    .main-layout { display: flex; height: calc(100vh - 56px); }
+    .sidebar {
+      width: 220px; background: #fff; border-right: 1px solid #e5e7eb;
+      padding: 16px 0; overflow-y: auto; flex-shrink: 0;
+    }
+    .sidebar-header { padding: 0 16px 16px; border-bottom: 1px solid #f3f4f6; margin-bottom: 12px; }
+    .project-meta-box {
+      display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+      border-radius: 10px; background: #f9fafb; cursor: pointer;
+    }
+    .project-logo {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 700; font-size: 14px;
+    }
+    .project-abbr { font-weight: 700; font-size: 13px; color: #111827; }
+    .project-name { font-size: 10px; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px; }
+    .sidebar-nav { list-style: none; padding: 0 10px; }
+    .sidebar-nav-item {
+      padding: 11px 14px; border-radius: 8px; cursor: pointer;
+      display: flex; align-items: center; gap: 10px; margin-bottom: 2px;
+      color: #6b7280; font-size: 14px; transition: all .2s;
+    }
+    .sidebar-nav-item:hover { background: #f9fafb; color: #111827; }
+    .sidebar-nav-item.active { background: #fee2e2; color: #dc2626; font-weight: 500; }
+    .main-content { flex: 1; overflow-y: auto; padding: 20px 24px; background: #f5f5f5; }
+    .role-bar {
+      background: linear-gradient(135deg, #fff 0%, #fef2f2 100%);
+      border: 1px solid #fecaca; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px;
+    }
+    .role-bar-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+    .role-identity { display: flex; align-items: center; gap: 12px; }
+    .role-avatar {
+      width: 44px; height: 44px; border-radius: 50%; background: #dc2626; color: #fff;
+      display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px;
+    }
+    .role-name { font-size: 16px; font-weight: 600; color: #111827; }
+    .role-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px;
+      background: #fee2e2; color: #dc2626; margin-left: 8px; font-weight: 500;
+    }
+    .role-scope { font-size: 13px; color: #6b7280; margin-top: 4px; }
+    .perm-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .perm-tag {
+      font-size: 11px; padding: 3px 8px; border-radius: 4px; border: 1px solid #e5e7eb; background: #fff;
+    }
+    .perm-tag.allow { border-color: #86efac; background: #f0fdf4; color: #166534; }
+    .perm-tag.deny { border-color: #fecaca; background: #fef2f2; color: #991b1b; }
+    .role-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .filter-select {
+      padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px;
+      font-size: 12px; background: #fff; color: #374151;
+    }
+    .date-range {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px;
+      background: #fff; font-size: 12px; color: #374151; min-width: 240px;
+    }
+    .date-range .date-range-icon { color: #9ca3af; font-size: 14px; line-height: 1; }
+    .date-range input[type="date"] {
+      border: none; outline: none; background: transparent;
+      font-size: 12px; color: #374151; width: 110px; padding: 0;
+      font-family: inherit;
+    }
+    .date-range .date-range-sep { color: #9ca3af; }
+    .date-range .date-range-clear {
+      border: none; background: #e5e7eb; color: #6b7280;
+      width: 16px; height: 16px; border-radius: 50%; cursor: pointer;
+      font-size: 11px; line-height: 16px; padding: 0; text-align: center;
+    }
+    .date-range .date-range-clear:hover { background: #d1d5db; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 8px; font-size: 13px;
+      font-weight: 500; cursor: pointer; transition: all .2s;
+    }
+    .btn-primary { background: #dc2626; color: #fff; }
+    .btn-primary:hover { background: #b91c1c; }
+    .btn-secondary { background: #f3f4f6; color: #374151; }
+    .btn-secondary:hover { background: #e5e7eb; }
+    .btn-sm { padding: 5px 12px; font-size: 12px; }
+    .btn-outline { background: #fff; border: 1px solid #d1d5db; color: #374151; }
+    .btn-outline:hover { background: #f9fafb; }
+    .download-report {
+      display: inline-flex; flex-direction: column; align-items: center;
+      gap: 2px; cursor: pointer; padding: 4px 8px; border: none; background: transparent;
+      color: #4b5563; font-size: 12px; line-height: 1.2;
+    }
+    .download-report:hover { color: #111827; }
+    .download-report-icon {
+      width: 28px; height: 24px; position: relative; display: flex; align-items: center; justify-content: center;
+      font-size: 20px; color: #9ca3af;
+    }
+    .download-report-icon .dl-badge {
+      position: absolute; right: -2px; bottom: -2px; width: 14px; height: 14px;
+      background: #9ca3af; color: #fff; border-radius: 50%; font-size: 9px;
+      display: flex; align-items: center; justify-content: center; line-height: 1;
+    }
+    .download-report-label { display: inline-flex; align-items: center; gap: 4px; }
+    .download-help {
+      width: 14px; height: 14px; border-radius: 50%; background: #dc2626; color: #fff;
+      font-size: 10px; display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 700; cursor: help;
+    }
+    .analysis-panel { background: #fff; border-radius: 12px; padding: 16px 20px 20px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    .analysis-chart-wrap { height: 320px; position: relative; }
+    .analysis-chart-foot {
+      display: flex; justify-content: center; margin-top: 8px;
+    }
+    .analysis-pill {
+      display: inline-block; padding: 4px 16px; border: 1px solid #dc2626; border-radius: 999px;
+      color: #dc2626; font-size: 13px; background: #fff;
+    }
+    .analysis-legend {
+      display: flex; justify-content: center; gap: 20px; font-size: 12px; color: #6b7280; margin-bottom: 8px;
+    }
+    .analysis-legend-item { display: flex; align-items: center; gap: 6px; }
+    .analysis-legend-bar { width: 12px; height: 12px; background: #f9a8a8; border-radius: 2px; }
+    .analysis-legend-line {
+      width: 18px; height: 2px; background: #dc2626; position: relative;
+    }
+    .analysis-legend-line::after {
+      content: ''; position: absolute; left: 50%; top: 50%; width: 8px; height: 8px;
+      border: 2px solid #dc2626; border-radius: 50%; background: #fff;
+      transform: translate(-50%, -50%);
+    }
+    .tab-bar {
+      display: flex; gap: 4px; background: #fff; border-radius: 10px;
+      padding: 4px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+      border: 1px solid #e5e7eb;
+    }
+    .tab-item {
+      flex: 1; text-align: center; padding: 10px 16px; border-radius: 8px;
+      cursor: pointer; font-size: 14px; color: #6b7280; transition: all .2s; font-weight: 500;
+    }
+    .tab-item:hover { background: #f9fafb; color: #111827; }
+    .tab-item.active { background: #dc2626; color: #fff; }
+    .tab-item.hidden { display: none; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .card {
+      background: #fff; border-radius: 12px; padding: 20px;
+      margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    }
+    .card-title {
+      font-size: 15px; font-weight: 600; color: #111827; margin-bottom: 14px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .kpi-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 16px;
+    }
+    .multi-filter {
+      position: relative; display: inline-block;
+    }
+    .multi-filter-btn {
+      padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px;
+      font-size: 12px; background: #fff; color: #374151; cursor: pointer; min-width: 120px; text-align: left;
+    }
+    .multi-filter-panel {
+      display: none; position: absolute; top: calc(100% + 4px); left: 0; z-index: 50;
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 8px 20px rgba(0,0,0,.08);
+      padding: 8px; min-width: 160px; max-height: 200px; overflow-y: auto;
+    }
+    .multi-filter-panel.open { display: block; }
+    .multi-filter-panel label {
+      display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 6px; cursor: pointer;
+    }
+    .multi-filter-panel label:hover { background: #f9fafb; }
+    th.sortable { cursor: pointer; user-select: none; }
+    th.sortable:hover { color: #dc2626; }
+    .kpi-card {
+      background: #fff; border-radius: 12px; padding: 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08); border-left: 4px solid #dc2626;
+    }
+    .kpi-card:nth-child(2) { border-left-color: #3b82f6; }
+    .kpi-card:nth-child(3) { border-left-color: #10b981; }
+    .kpi-card:nth-child(4) { border-left-color: #8b5cf6; }
+    .kpi-card:nth-child(5) { border-left-color: #f59e0b; }
+    .kpi-label { font-size: 13px; color: #6b7280; margin-bottom: 6px; }
+    .kpi-value { font-size: 22px; font-weight: 700; color: #111827; word-break: break-all; }
+    .kpi-sub { font-size: 12px; color: #6b7280; margin-top: 4px; }
+    .kpi-trend-up { color: #10b981; }
+    .kpi-trend-down { color: #ef4444; }
+    .progress-bar {
+      height: 8px; background: #e5e7eb; border-radius: 4px; margin-top: 10px; overflow: hidden;
+    }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #dc2626, #f87171); border-radius: 4px; transition: width .3s; }
+    .stat-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
+    }
+    .stat-card {
+      background: #f9fafb; border-radius: 10px; padding: 16px; text-align: center;
+      border: 1px solid #f3f4f6;
+    }
+    .stat-label { font-size: 12px; color: #6b7280; margin-bottom: 6px; }
+    .stat-value { font-size: 22px; font-weight: 700; color: #111827; }
+    .stat-pct { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+    .quick-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    .center-compare { display: flex; flex-direction: column; gap: 12px; }
+    .center-row {
+      display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+      background: #f9fafb; border-radius: 8px; cursor: pointer; transition: background .2s;
+    }
+    .center-row:hover { background: #f3f4f6; }
+    .center-row.warning { border-left: 3px solid #f59e0b; }
+    .center-name { width: 70px; font-weight: 600; font-size: 13px; flex-shrink: 0; }
+    .center-bar-wrap { flex: 1; }
+    .center-bar { height: 20px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+    .center-bar-fill { height: 100%; background: #f9a8a8; border-radius: 4px; }
+    .center-bar-fill.good { background: #86efac; }
+    .center-stats { font-size: 12px; color: #6b7280; width: 120px; text-align: right; flex-shrink: 0; }
+    .center-status { font-size: 11px; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; }
+    .center-status.ok { background: #d1fae5; color: #065f46; }
+    .center-status.warn { background: #fef3c7; color: #92400e; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .data-table th {
+      text-align: left; padding: 10px 12px; background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #374151; font-size: 12px;
+    }
+    .data-table td { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; color: #4b5563; }
+    .data-table tr:hover td { background: #fafafa; }
+    .chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .chart-card { background: #f9fafb; border-radius: 10px; padding: 16px; border: 1px solid #f3f4f6; }
+    .chart-title { font-size: 13px; font-weight: 600; margin-bottom: 12px; color: #111827; }
+    .chart-canvas-wrap { height: 200px; position: relative; }
+    .chart-note { font-size: 11px; color: #9ca3af; margin-top: 8px; }
+    .sub-tab-bar { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
+    .sub-tab {
+      padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer;
+      color: #6b7280; transition: all .2s;
+    }
+    .sub-tab:hover { background: #f3f4f6; }
+    .sub-tab.active { background: #fee2e2; color: #dc2626; font-weight: 500; }
+    .toolbar {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 10px; margin-bottom: 14px;
+    }
+    .toolbar-left { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .search-input {
+      padding: 7px 12px; border: 1px solid #d1d5db; border-radius: 6px;
+      font-size: 13px; width: 200px;
+    }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+    .badge-green { background: #d1fae5; color: #065f46; }
+    .badge-yellow { background: #fef3c7; color: #92400e; }
+    .badge-red { background: #fee2e2; color: #991b1b; }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .badge-gray { background: #f3f4f6; color: #6b7280; }
+    .mgmt-sub-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+    .mgmt-sub-tab {
+      padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer;
+      background: #f3f4f6; color: #6b7280;
+    }
+    .mgmt-sub-tab.active { background: #dc2626; color: #fff; }
+    /* 设置页 / 授权管理：左侧竖排 Tab */
+    .settings-layout {
+      display: flex; gap: 0; min-height: 520px; background: #fff;
+      border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    }
+    .settings-tabs {
+      width: 180px; flex-shrink: 0; background: #fafafa; border-right: 1px solid #f0f0f0;
+      padding: 12px 0;
+    }
+    .settings-tab {
+      padding: 12px 20px; font-size: 14px; color: #374151; cursor: pointer;
+      border-left: 3px solid transparent; transition: all .15s;
+    }
+    .settings-tab:hover { background: #f3f4f6; color: #111827; }
+    .settings-tab.active {
+      color: #dc2626; font-weight: 500; background: #fff;
+      border-left-color: #dc2626;
+    }
+    .settings-content {
+      flex: 1; padding: 24px 28px; background: #fff; min-width: 0;
+    }
+    .admin-layout { min-height: 560px; }
+    .admin-content-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #111827; }
+    .matrix-table td, .matrix-table th { text-align: center; padding: 8px; }
+    .matrix-check { color: #10b981; font-weight: 700; }
+    .matrix-cross { color: #d1d5db; }
+    .drawer-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 300;
+      display: none; align-items: stretch; justify-content: flex-end;
+    }
+    .drawer-overlay.active { display: flex; }
+    .drawer {
+      width: 420px; background: #fff; box-shadow: -4px 0 20px rgba(0,0,0,.1);
+      padding: 24px; overflow-y: auto;
+    }
+    .drawer-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; justify-content: space-between; }
+    .drawer-close { cursor: pointer; font-size: 20px; color: #9ca3af; }
+    .toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      background: #111827; color: #fff; padding: 10px 20px; border-radius: 8px;
+      font-size: 13px; z-index: 500; opacity: 0; transition: opacity .3s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+    .dropdown { position: relative; display: inline-block; }
+    .dropdown-menu {
+      position: absolute; top: calc(100% + 4px); right: 0; background: #fff;
+      border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.1);
+      min-width: 200px; z-index: 200; display: none; padding: 4px;
+    }
+    .dropdown-menu.active { display: block; }
+    .dropdown-item {
+      padding: 8px 12px; font-size: 13px; cursor: pointer; border-radius: 6px; color: #374151;
+    }
+    .dropdown-item:hover { background: #f3f4f6; }
+    .dropdown-item.disabled { color: #d1d5db; cursor: not-allowed; }
+    .dev-panel {
+      position: fixed; bottom: 16px; right: 16px; z-index: 400;
+    }
+    .dev-toggle {
+      width: 48px; height: 48px; border-radius: 50%; background: #111827; color: #fff;
+      border: none; cursor: pointer; font-size: 20px; box-shadow: 0 4px 12px rgba(0,0,0,.2);
+    }
+    .dev-menu {
+      position: absolute; bottom: 56px; right: 0; background: #fff;
+      border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.15);
+      width: 260px; padding: 12px; display: none;
+    }
+    .dev-menu.active { display: block; }
+    .dev-menu-title { font-size: 11px; color: #9ca3af; margin: 8px 0 4px; text-transform: uppercase; }
+    .dev-menu-item {
+      padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 13px;
+    }
+    .dev-menu-item:hover { background: #f3f4f6; }
+    .dev-menu-item.active { background: #fee2e2; color: #dc2626; font-weight: 500; }
+    .legend { display: flex; gap: 12px; font-size: 11px; color: #6b7280; margin-top: 8px; }
+    .legend-item { display: flex; align-items: center; gap: 4px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+    .footer {
+      text-align: center; padding: 16px; color: #9ca3af; font-size: 11px;
+      border-top: 1px solid #e5e7eb; background: #fff; margin-top: 20px;
+    }
+    @media (max-width: 1200px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .stat-grid { grid-template-columns: repeat(3, 1fr); }
+      .chart-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top-header">
+    <div class="logo-section">
+      <div class="logo-icon">医</div>
+      <div>
+        <div class="logo-title">医利库 · 智能精准医学协作系统</div>
+        <div class="logo-subtitle">慧诊间 · 多角色权限管理</div>
+      </div>
+      <a href="mobile.html" style="font-size:12px;color:#dc2626;text-decoration:none;padding:4px 10px;border:1px solid #fecaca;border-radius:999px;margin-left:8px">手机端</a>
+    </div>
+    <div class="top-nav-icons">
+      <div class="nav-icon"><div class="icon-circle">💊</div><span>用药敏感性</span></div>
+      <div class="nav-icon"><div class="icon-circle">🤖</div><span>智能问答</span></div>
+      <div class="nav-icon"><div class="icon-circle">🔬</div><span>智能科研</span></div>
+      <div class="nav-icon active"><div class="icon-circle">🏥</div><span>慧诊间</span></div>
+      <div class="nav-icon"><div class="icon-circle">👤</div><span>个人中心</span></div>
+    </div>
+  </header>
+
+  <div class="main-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="project-meta-box">
+          <div class="project-logo">U</div>
+          <div>
+            <div class="project-abbr">SCUA®</div>
+            <div class="project-name">南方荨麻疹专病联盟</div>
+          </div>
+        </div>
+      </div>
+      <ul class="sidebar-nav" id="sidebar-nav">
+        <li class="sidebar-nav-item active" data-page="dashboard" onclick="showPage('dashboard')"><span>📊</span> 仪表板</li>
+        <li class="sidebar-nav-item" data-page="cases" onclick="showPage('cases')"><span>📋</span> 我的病案</li>
+        <li class="sidebar-nav-item" data-page="admin" id="nav-admin" onclick="showPage('admin')" style="display:none"><span>🗂️</span> 授权管理</li>
+        <li class="sidebar-nav-item" data-page="settings" onclick="showPage('settings')"><span>⚙️</span> 设置</li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <!-- 页面：仪表板 -->
+      <div id="page-dashboard">
+      <!-- 角色感知条 -->
+      <div class="role-bar" id="role-bar">
+        <div class="role-bar-top">
+          <div class="role-identity">
+            <div class="role-avatar" id="role-avatar">张</div>
+            <div>
+              <div class="role-name">
+                <span id="role-user-name">张管理</span>
+                <span class="role-badge" id="role-badge">多中心管理员</span>
+              </div>
+              <div class="role-scope" id="role-scope">📊 汇总范围：项目全部医院（320 例）· 仪表板仅汇总</div>
+            </div>
+          </div>
+          <div class="role-actions">
+            <div class="date-range" id="filter-time-range" title="时间范围：起点 — 终点">
+              <span class="date-range-icon" aria-hidden="true">📅</span>
+              <input type="date" id="filter-time-start" value="2026-07-16" onchange="onTimeRangeChange()" />
+              <span class="date-range-sep">-</span>
+              <input type="date" id="filter-time-end" value="2026-07-22" onchange="onTimeRangeChange()" />
+              <button type="button" class="date-range-clear" onclick="clearTimeRange()" title="清除">×</button>
+            </div>
+            <button type="button" class="download-report" onclick="downloadAccountReport()" title="下载本账户病案全部数据（与仪表板筛选无关）">
+              <span class="download-report-icon">☁<span class="dl-badge">↓</span></span>
+              <span class="download-report-label">
+                下载报告
+                <span class="download-help" onclick="event.stopPropagation();showToast('下载本账户有权范围内的病案全部数据（脱敏）；与当前仪表板展示无关。原型占位。')" title="说明">?</span>
+              </span>
+            </button>
+          </div>
+        </div>
+        <div style="margin-top:10px;font-size:12px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;">
+          提示：仪表板<strong>仅展示汇总</strong>。进度页<strong>数据矩阵</strong>右侧可按医院/科室/医生筛选（仅影响矩阵）。「我的病案」仅本人绑定/添加的病案；管理员范围明细须「明细下载授权」勾选并<strong>发布</strong>后下载；科研人员下载仅限本账户病案。
+        </div>
+      </div>
+
+      <!-- Tab 栏：v2.0 仅总览/进度/分析，已删除明细与管理 Tab -->
+      <div class="tab-bar" id="tab-bar">
+        <div class="tab-item active" data-tab="overview" onclick="switchTab('overview')">总览</div>
+        <div class="tab-item" data-tab="progress" onclick="switchTab('progress')">进度</div>
+        <div class="tab-item" data-tab="analysis" onclick="switchTab('analysis')">分析</div>
+      </div>
+
+      <!-- Tab: 总览 -->
+      <div class="tab-panel active" id="panel-overview">
+        <div class="kpi-grid" id="overview-kpi"></div>
+        <div class="card">
+          <div class="card-title">病案概览</div>
+          <div class="stat-grid" id="overview-stats"></div>
+        </div>
+      </div>
+
+      <!-- Tab: 进度 -->
+      <div class="tab-panel" id="panel-progress">
+        <div class="card" id="progress-main-card"></div>
+        <div class="card" id="progress-secondary-card" style="margin-top:16px;display:none">
+          <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+            <span id="matrix-title">医院 × 指标矩阵</span>
+            <div class="role-actions" id="matrix-filter-bar">
+              <div class="multi-filter" id="wrap-filter-hospital">
+                <button type="button" class="multi-filter-btn" id="btn-filter-hospital" onclick="toggleMultiFilter('hospital')">医院：全部 ▾</button>
+                <div class="multi-filter-panel" id="panel-filter-hospital"></div>
+              </div>
+              <div class="multi-filter" id="wrap-filter-dept">
+                <button type="button" class="multi-filter-btn" id="btn-filter-dept" onclick="toggleMultiFilter('dept')">科室：全部 ▾</button>
+                <div class="multi-filter-panel" id="panel-filter-dept"></div>
+              </div>
+              <div class="multi-filter" id="wrap-filter-doctor">
+                <button type="button" class="multi-filter-btn" id="btn-filter-doctor" onclick="toggleMultiFilter('doctor')">医生：全部 ▾</button>
+                <div class="multi-filter-panel" id="panel-filter-doctor"></div>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="applyMatrixFilters()">确定</button>
+            </div>
+          </div>
+          <div id="matrix-table-wrap"></div>
+        </div>
+      </div>
+
+      <!-- Tab: 分析 -->
+      <div class="tab-panel" id="panel-analysis">
+        <div class="sub-tab-bar">
+          <div class="sub-tab active" onclick="switchAnalysisSub('diagnosis')">疾病诊断</div>
+          <div class="sub-tab" onclick="switchAnalysisSub('treatment')">治疗方案</div>
+          <div class="sub-tab" onclick="switchAnalysisSub('questionnaire')">评估问卷</div>
+          <div class="sub-tab" onclick="switchAnalysisSub('lab')">检验指标</div>
+        </div>
+        <div class="analysis-panel">
+          <div class="analysis-legend">
+            <div class="analysis-legend-item"><span class="analysis-legend-bar"></span>数量</div>
+            <div class="analysis-legend-item"><span class="analysis-legend-line"></span>比例</div>
+          </div>
+          <div class="analysis-chart-wrap"><canvas id="analysis-chart"></canvas></div>
+          <div class="analysis-chart-foot"><span class="analysis-pill" id="analysis-pill">合并症</span></div>
+        </div>
+      </div>
+
+      <!-- v2.0：已删除仪表板「明细」「管理」Tab -->
+      </div><!-- /page-dashboard -->
+
+      <!-- 页面：我的病案 -->
+      <div id="page-cases" style="display:none">
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-title" style="margin-bottom:4px">我的病案</div>
+          <div style="font-size:12px;color:#6b7280" id="cases-scope-tip">仅展示当前用户有权绑定的病案明细</div>
+        </div>
+        <div style="display:grid;grid-template-columns:240px 1fr;gap:16px">
+          <div class="card" style="padding:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <strong style="font-size:13px">病案列表</strong>
+              <button class="btn btn-primary btn-sm" id="btn-add-case" onclick="openAddCaseModal()">+ 新增</button>
+            </div>
+            <input class="search-input" style="width:100%;margin-bottom:8px" placeholder="搜索病案号" />
+            <div id="cases-doctor-filter-wrap" style="display:none;margin-bottom:8px">
+              <select class="filter-select" id="cases-doctor-filter" style="width:100%" onchange="renderCases()">
+                <option value="all">管理医生：全部</option>
+              </select>
+            </div>
+            <ul class="cases-list-items" id="cases-list" style="list-style:none"></ul>
+          </div>
+          <div class="card" style="padding:0;overflow:hidden">
+            <div style="display:flex;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid #f3f4f6;background:#fafafa">
+              <div>
+                <div style="font-size:12px;color:#6b7280">病案详情</div>
+                <div style="font-size:16px;font-weight:600;margin-top:4px" id="case-detail-id">ID：—</div>
+              </div>
+              <div style="text-align:right;min-width:200px">
+                <div style="font-size:12px;color:#6b7280">姓名：<span id="case-detail-name">—</span></div>
+                <div style="font-size:12px;color:#6b7280;margin-top:4px">手机：<span id="case-detail-phone">—</span></div>
+                <div style="font-size:13px;font-weight:600;color:#dc2626;margin-top:8px;padding:6px 10px;background:#fef2f2;border-radius:6px;display:inline-block">
+                  管理医生：<span id="case-detail-doctor">—</span>
+                </div>
+                <div style="margin-top:6px"><span class="badge badge-blue" id="case-detail-tag">—</span></div>
+              </div>
+            </div>
+            <div style="padding:20px;color:#6b7280;font-size:13px" id="case-detail-body">
+              请从左侧选择病案。本页仅展示本人绑定/添加的病案；管理员范围个案须「明细下载授权」勾选并<strong>发布</strong>后下载；科研人员仅可下载本账户病案数据。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 页面：授权管理（超管 · 左侧竖排 Tab，对齐设置页） -->
+      <div id="page-admin" style="display:none">
+        <div class="settings-layout admin-layout">
+          <nav class="settings-tabs" id="admin-tabs">
+            <div class="settings-tab active" data-admin-tab="roles" onclick="switchAdminSub('roles')">角色指派</div>
+            <div class="settings-tab" data-admin-tab="hospitals" onclick="switchAdminSub('hospitals')">医院列表</div>
+            <div class="settings-tab" data-admin-tab="org" onclick="switchAdminSub('org')">组织架构</div>
+            <div class="settings-tab" data-admin-tab="detail" onclick="switchAdminSub('detail')">明细下载授权</div>
+            <div class="settings-tab" data-admin-tab="completeness" onclick="switchAdminSub('completeness')">数据必填项配置</div>
+          </nav>
+          <div class="settings-content">
+            <div id="admin-sub-roles">
+              <div class="admin-content-title">角色指派</div>
+              <div class="toolbar" style="margin-bottom:12px">
+                <button class="btn btn-primary btn-sm" onclick="openAddRoleModal()">+ 新增角色</button>
+                <span style="font-size:12px;color:#6b7280">先输手机号检索；管辖范围医院→科室可全选。科研人员指派后即可查看该范围仪表板汇总；下载仍仅限本账户病案数据。</span>
+              </div>
+              <table class="data-table">
+                <thead><tr><th>姓名</th><th>手机号</th><th>角色</th><th>管辖范围</th><th>操作</th></tr></thead>
+                <tbody id="admin-role-tbody">
+                  <tr data-role-row="1">
+                    <td>张管理</td><td>13800000001</td><td><span class="badge badge-blue">多中心管理员</span></td>
+                    <td>项目全部医院</td>
+                    <td><button class="btn btn-outline btn-sm" onclick="deleteRoleRow(this)">删除角色</button></td>
+                  </tr>
+                  <tr data-role-row="2">
+                    <td>周院管</td><td>13800000002</td><td><span class="badge badge-blue">医院管理员</span></td>
+                    <td>医院B</td>
+                    <td><button class="btn btn-outline btn-sm" onclick="deleteRoleRow(this)">删除角色</button></td>
+                  </tr>
+                  <tr data-role-row="3">
+                    <td>王主任</td><td>13800000003</td><td><span class="badge badge-blue">科室管理员</span></td>
+                    <td>医院A · 皮肤科</td>
+                    <td><button class="btn btn-outline btn-sm" onclick="deleteRoleRow(this)">删除角色</button></td>
+                  </tr>
+                  <tr data-role-row="4">
+                    <td>陈统计</td><td>13600003456</td><td><span class="badge badge-yellow">科研人员</span></td>
+                    <td>医院A+B</td>
+                    <td><button class="btn btn-outline btn-sm" onclick="deleteRoleRow(this)">删除角色</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div id="admin-sub-hospitals" style="display:none">
+              <div class="admin-content-title">医院列表</div>
+              <p style="font-size:13px;color:#6b7280;margin-bottom:12px">
+                配置<strong>当前项目</strong>参与协作的医院名单（沿用顶部已选项目）。可上传 Excel/CSV（列：<strong>项目名称、医院名称</strong>），上传后与系统内已存在医院<strong>手动关联</strong>；也可像必填项配置一样新增/删除。本页生效的医院将出现在「新增角色」管辖范围的医院列表中。
+              </p>
+              <div class="toolbar" style="margin-bottom:12px;gap:12px;flex-wrap:wrap">
+                <button class="btn btn-outline btn-sm" onclick="downloadHospitalTemplate()">下载模板（两列）</button>
+                <button class="btn btn-primary btn-sm" onclick="addProjectHospitalRow()">+ 新增医院</button>
+              </div>
+              <div style="border:1px dashed #d1d5db;border-radius:12px;padding:28px;text-align:center;background:#f9fafb;margin-bottom:16px">
+                <div style="font-size:14px;font-weight:500;margin-bottom:8px">上传医院列表 Excel</div>
+                <div style="font-size:12px;color:#6b7280;margin-bottom:12px">支持 .xlsx / .xls / .csv；表头须为：项目名称、医院名称。上传识别后请在下方列表中关联系统内医院。</div>
+                <input type="file" id="hospital-list-file" accept=".xlsx,.xls,.csv" style="font-size:13px" onchange="onHospitalFileSelected(this)" />
+                <div style="margin-top:12px">
+                  <button class="btn btn-primary btn-sm" onclick="parseHospitalFile()">解析并加入列表</button>
+                </div>
+                <p style="font-size:11px;color:#9ca3af;margin-top:10px" id="hospital-file-tip">上传医院列表 excel，手动关联系统内已存在的医院</p>
+              </div>
+              <div class="card-title" style="font-size:14px">当前项目医院名单</div>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>项目名称</th>
+                    <th>Excel 医院名称</th>
+                    <th>关联系统医院</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="project-hospital-tbody"></tbody>
+              </table>
+            </div>
+
+            <div id="admin-sub-org" style="display:none">
+              <div class="admin-content-title">组织架构</div>
+              <p style="font-size:13px;color:#6b7280;margin-bottom:12px">一行一个项目用户。在表头输入筛选条件后点<strong>确定</strong>刷新列表；「去角色指派」打开新增弹窗并预填手机号与姓名。</p>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>姓名<br><input class="form-input org-th-filter" id="org-th-name" placeholder="筛选姓名" style="width:100%;margin-top:6px;padding:4px 8px;font-weight:400" /></th>
+                    <th>手机号<br><input class="form-input org-th-filter" id="org-th-phone" placeholder="筛选手机号" style="width:100%;margin-top:6px;padding:4px 8px;font-weight:400" /></th>
+                    <th>医院<br><input class="form-input org-th-filter" id="org-th-hospital" placeholder="筛选医院" style="width:100%;margin-top:6px;padding:4px 8px;font-weight:400" /></th>
+                    <th>科室<br><input class="form-input org-th-filter" id="org-th-dept" placeholder="筛选科室" style="width:100%;margin-top:6px;padding:4px 8px;font-weight:400" /></th>
+                    <th>角色<br><input class="form-input org-th-filter" id="org-th-role" placeholder="筛选角色" style="width:100%;margin-top:6px;padding:4px 8px;font-weight:400" /></th>
+                    <th>操作<br><button type="button" class="btn btn-primary btn-sm" style="margin-top:6px" onclick="applyOrgFilters()">确定</button></th>
+                  </tr>
+                </thead>
+                <tbody id="org-user-tbody"></tbody>
+              </table>
+              <div id="org-pager" style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap"></div>
+            </div>
+            <div id="admin-sub-detail" style="display:none">
+              <div class="admin-content-title">明细下载授权</div>
+              <p style="font-size:13px;color:#6b7280;margin-bottom:12px">
+                仅针对<strong>管理员</strong>开通跨主体病案明细下载。勾选「允许明细下载」后须点<strong>发布</strong>，发布成功后该管理员才可下载管辖范围内病案明细。取消勾选或取消发布后不可下明细。科研人员无需本页配置：在「角色指派」生效后即可看管辖范围仪表板，下载仍仅限本账户病案数据。
+              </p>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>主体</th>
+                    <th>汇总范围（示意）</th>
+                    <th>允许明细下载</th>
+                    <th>发布状态</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr data-detail-grant="1">
+                    <td>多中心管理员 · 张管理</td>
+                    <td><span style="font-size:12px;color:#6b7280">项目全部医院</span></td>
+                    <td><input type="checkbox" id="detail-grant-cb-1" onchange="onDetailGrantCheck(1)"></td>
+                    <td><span class="badge badge-yellow" id="detail-grant-pub-1">未发布</span></td>
+                    <td><button type="button" class="btn btn-primary btn-sm" id="detail-grant-btn-1" disabled onclick="publishDetailGrant(1)">发布</button></td>
+                  </tr>
+                  <tr data-detail-grant="2">
+                    <td>医院管理员 · 周院管</td>
+                    <td><span style="font-size:12px;color:#6b7280">医院B · 全部科室</span></td>
+                    <td><input type="checkbox" id="detail-grant-cb-2" onchange="onDetailGrantCheck(2)"></td>
+                    <td><span class="badge badge-yellow" id="detail-grant-pub-2">未发布</span></td>
+                    <td><button type="button" class="btn btn-primary btn-sm" id="detail-grant-btn-2" disabled onclick="publishDetailGrant(2)">发布</button></td>
+                  </tr>
+                  <tr data-detail-grant="3">
+                    <td>科室管理员 · 王主任</td>
+                    <td><span style="font-size:12px;color:#6b7280">医院A · 皮肤科</span></td>
+                    <td><input type="checkbox" id="detail-grant-cb-3" checked onchange="onDetailGrantCheck(3)"></td>
+                    <td><span class="badge badge-green" id="detail-grant-pub-3">已发布</span></td>
+                    <td><button type="button" class="btn btn-outline btn-sm" id="detail-grant-btn-3" onclick="publishDetailGrant(3)">取消发布</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="admin-sub-completeness" style="display:none">
+              <div class="admin-content-title">数据必填项配置</div>
+              <p style="font-size:13px;color:#6b7280;margin-bottom:12px">
+                配置本项目<strong>数据完整率</strong>所用必填字段（项目已在顶部选定，本页不再选项目）。列表仅三列：<strong>字段名称 | 字段ID | 是否必填</strong>。支持行内增删改，以及 Excel/CSV 上传（模板同三列）。
+              </p>
+              <div class="toolbar" style="margin-bottom:12px;gap:12px;flex-wrap:wrap">
+                <button class="btn btn-outline btn-sm" onclick="downloadCompletenessTemplate()">下载模板（三列）</button>
+                <button class="btn btn-primary btn-sm" onclick="addCompletenessRow()">+ 新增字段</button>
+              </div>
+              <div style="border:1px dashed #d1d5db;border-radius:12px;padding:20px;text-align:center;background:#f9fafb;margin-bottom:16px">
+                <div style="font-size:14px;font-weight:500;margin-bottom:8px">上传必填配置文件</div>
+                <div style="font-size:12px;color:#6b7280;margin-bottom:12px">支持 .xlsx / .xls / .csv；表头须为：字段名称、字段ID、是否必填</div>
+                <input type="file" id="completeness-file" accept=".xlsx,.xls,.csv" style="font-size:13px" onchange="onCompletenessFileSelected(this)" />
+                <div style="margin-top:12px">
+                  <button class="btn btn-primary btn-sm" onclick="publishCompletenessConfig()">解析并发布</button>
+                </div>
+              </div>
+              <div class="card-title" style="font-size:14px">当前生效必填清单</div>
+              <table class="data-table">
+                <thead><tr><th>字段名称</th><th>字段ID</th><th>是否必填</th><th>操作</th></tr></thead>
+                <tbody id="completeness-preview"></tbody>
+              </table>
+              <p style="font-size:11px;color:#9ca3af;margin-top:8px" id="completeness-file-tip">可直接改表内行，或上传三列模板后发布</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 页面：设置（左侧 Tab + 右侧内容，对齐产品设置页） -->
+      <div id="page-settings" style="display:none">
+        <div class="settings-layout">
+          <nav class="settings-tabs" id="settings-tabs">
+            <div class="settings-tab active" data-settings-tab="account" onclick="switchSettingsTab('account')">账号信息</div>
+            <div class="settings-tab" data-settings-tab="password" onclick="switchSettingsTab('password')">密码管理</div>
+            <div class="settings-tab" data-settings-tab="tasks" onclick="switchSettingsTab('tasks')">任务列表管理</div>
+            <div class="settings-tab" data-settings-tab="consent" onclick="switchSettingsTab('consent')">知情同意书管理</div>
+            <div class="settings-tab" data-settings-tab="robot" onclick="switchSettingsTab('robot')">机器人管理</div>
+            <div class="settings-tab" data-settings-tab="jump" onclick="switchSettingsTab('jump')">跳转设置</div>
+            <div class="settings-tab" data-settings-tab="identity" onclick="switchSettingsTab('identity')">身份认证</div>
+            <div class="settings-tab" data-settings-tab="binding" id="settings-tab-binding" onclick="switchSettingsTab('binding')">绑定管理</div>
+          </nav>
+          <div class="settings-content" id="settings-content"></div>
+        </div>
+      </div>
+
+      <div class="footer">华药智引医学技术有限公司 · HUAYAO-AI CO.LTD.</div>
+    </main>
+  </div>
+
+  <!-- 新增病案弹窗 -->
+  <div class="drawer-overlay" id="add-case-modal" onclick="closeAddCaseModal(event)">
+    <div class="drawer" style="width:480px;border-radius:12px 0 0 12px" onclick="event.stopPropagation()">
+      <div class="drawer-title">
+        <span>新增病案</span>
+        <span class="drawer-close" onclick="closeAddCaseModal()">×</span>
+      </div>
+      <div class="form-group" style="margin-bottom:14px">
+        <label class="form-label" style="display:block;margin-bottom:6px;font-size:13px;font-weight:500">疾病</label>
+        <select class="filter-select" style="width:100%"><option>特应性皮炎</option><option>慢性自发性荨麻疹</option></select>
+      </div>
+      <div class="form-group" style="margin-bottom:14px" id="managing-doctor-field">
+        <label class="form-label" style="display:block;margin-bottom:6px;font-size:13px;font-weight:500">管理医生 <span style="color:#dc2626">* 必选</span></label>
+        <select class="filter-select" style="width:100%" id="add-case-doctor">
+          <option value="">请选择管理医生</option>
+        </select>
+        <div style="font-size:11px;color:#9ca3af;margin-top:4px">助理代录时必选；选项为已绑定的医生，用于区分患者归属</div>
+      </div>
+      <div class="form-group" style="margin-bottom:14px">
+        <label class="form-label" style="display:block;margin-bottom:6px;font-size:13px;font-weight:500">病案ID *</label>
+        <input class="form-input" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px" placeholder="请输入病案ID" />
+      </div>
+      <div class="form-group" style="margin-bottom:14px">
+        <label class="form-label" style="display:block;margin-bottom:6px;font-size:13px;font-weight:500">姓名</label>
+        <input class="form-input" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px" placeholder="请输入姓名" />
+      </div>
+      <div class="form-group" style="margin-bottom:14px">
+        <label class="form-label" style="display:block;margin-bottom:6px;font-size:13px;font-weight:500">手机号</label>
+        <input class="form-input" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px" placeholder="请输入手机号" />
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
+        <button class="btn btn-outline" onclick="closeAddCaseModal()">取消</button>
+        <button class="btn btn-primary" onclick="confirmAddCase()">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增角色弹窗：手机号优先检索 + 级联范围 -->
+  <div class="drawer-overlay" id="add-role-modal" onclick="closeAddRoleModal(event)">
+    <div class="drawer" style="width:480px;border-radius:12px 0 0 12px" onclick="event.stopPropagation()">
+      <div class="drawer-title">
+        <span>新增角色</span>
+        <span class="drawer-close" onclick="closeAddRoleModal()">×</span>
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;margin-bottom:6px;font-size:13px;font-weight:500">手机号 *（先检索）</label>
+        <div style="display:flex;gap:8px">
+          <input id="add-role-phone" class="form-input" style="flex:1;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px" placeholder="11 位手机号" onblur="lookupProjectUser()" />
+          <button type="button" class="btn btn-outline btn-sm" onclick="lookupProjectUser()">检索</button>
+        </div>
+        <div id="add-role-lookup-tip" style="font-size:12px;color:#9ca3af;margin-top:6px">须为已注册且已加入本项目的用户</div>
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;margin-bottom:6px;font-size:13px;font-weight:500">姓名</label>
+        <input id="add-role-name" class="form-input" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb" placeholder="检索成功后自动填充" readonly />
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;margin-bottom:6px;font-size:13px;font-weight:500">角色 *</label>
+        <select id="add-role-type" class="filter-select" style="width:100%" onchange="onAddRoleTypeChange()">
+          <option value="">请选择角色</option>
+          <option>多中心管理员</option>
+          <option>医院管理员</option>
+          <option>科室管理员</option>
+          <option>科研人员</option>
+        </select>
+      </div>
+      <div style="margin-bottom:14px" id="add-role-scope-wrap">
+        <label style="display:block;margin-bottom:6px;font-size:13px;font-weight:500">管辖 / 授权范围（医院→科室，可全选）</label>
+        <input id="add-scope-hospital-search" class="form-input" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;margin-bottom:8px" placeholder="搜索医院名称（适配百家医院）" oninput="renderAddScopeHospitals()" />
+        <div style="border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin-bottom:8px;max-height:160px;overflow:auto">
+          <div style="font-size:12px;font-weight:500;margin-bottom:6px">医院</div>
+          <label style="font-size:12px;margin-right:10px"><input type="checkbox" id="add-scope-h-all" onchange="toggleAddScopeAll('hospital', this.checked)"> 全选（当前列表）</label>
+          <div id="add-scope-hospital-options" style="margin-top:8px"></div>
+        </div>
+        <div style="border:1px solid #e5e7eb;border-radius:8px;padding:10px" id="add-scope-dept-box">
+          <div style="font-size:12px;font-weight:500;margin-bottom:6px">科室（随所选医院级联）</div>
+          <label style="font-size:12px;margin-right:10px"><input type="checkbox" id="add-scope-d-all" onchange="toggleAddScopeAll('dept', this.checked)"> 全选</label>
+          <span id="add-scope-dept-options" style="font-size:12px;color:#9ca3af">请先选择医院</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
+        <button class="btn btn-outline" onclick="closeAddRoleModal()">取消</button>
+        <button class="btn btn-primary" onclick="confirmAddRole()">确认指派</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 下钻侧滑面板 -->
+  <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer(event)">
+    <div class="drawer" onclick="event.stopPropagation()">
+      <div class="drawer-title">
+        <span id="drawer-title">下钻详情</span>
+        <span class="drawer-close" onclick="closeDrawer()">×</span>
+      </div>
+      <div id="drawer-body"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- 开发面板：角色切换 -->
+  <div class="dev-panel">
+    <div class="dev-menu" id="dev-menu">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">🔧 原型演示控制台</div>
+      <div class="dev-menu-title">切换角色</div>
+      <div class="dev-menu-item" data-role="multiCenterAdmin" onclick="setRole('multiCenterAdmin')">多中心管理员（默认）</div>
+      <div class="dev-menu-item" data-role="hospitalAdmin" onclick="setRole('hospitalAdmin')">医院管理员</div>
+      <div class="dev-menu-item" data-role="superAdmin" onclick="setRole('superAdmin')">超级管理员</div>
+      <div class="dev-menu-item" data-role="deptDirector" onclick="setRole('deptDirector')">科室管理员</div>
+      <div class="dev-menu-item" data-role="doctor" onclick="setRole('doctor')">普通医生</div>
+      <div class="dev-menu-item" data-role="assistant" onclick="setRole('assistant')">科研助理</div>
+      <div class="dev-menu-item" data-role="researcher" onclick="setRole('researcher')">科研人员</div>
+      <div class="dev-menu-title">切换 Tab</div>
+      <div class="dev-menu-item" onclick="switchTab('overview')">总览</div>
+      <div class="dev-menu-item" onclick="switchTab('progress')">进度</div>
+      <div class="dev-menu-item" onclick="switchTab('analysis')">分析</div>
+      <div class="dev-menu-title">切换页面</div>
+      <div class="dev-menu-item" onclick="showPage('dashboard')">仪表板</div>
+      <div class="dev-menu-item" onclick="showPage('cases')">我的病案</div>
+      <div class="dev-menu-item" onclick="showPage('admin')">授权管理</div>
+      <div class="dev-menu-item" onclick="showPage('settings')">设置</div>
+    </div>
+    <button class="dev-toggle" onclick="toggleDevMenu()" title="原型控制台">🔧</button>
+  </div>
+
+  <script>
+    const ROLES = {
+      multiCenterAdmin: {
+        name: '张管理', avatar: '张', badge: '多中心管理员',
+        scope: '项目全部医院（320 例）',
+        perms: [
+          { t: '全部医院汇总', ok: true }, { t: '页面看患者明细', ok: false },
+          { t: '下载汇总脱敏', ok: true }, { t: '明细需勾选并发布', ok: false }
+        ],
+        kpi: [
+          { label: '入组人数', value: '238', sub: '', trend: '' },
+          { label: '随访人数', value: '196', sub: '至少完成1次随访', trend: '' },
+          { label: '随访率', value: '82%', sub: '随访人数÷入组人数', trend: '' },
+          { label: '随访完成率', value: '35/65（53.8%）', sub: '已完成随访人次÷计划随访人次', trend: '' },
+          { label: '数据完整率', value: '89%', sub: '按项目必填配置', trend: '' }
+        ],
+        stats: [
+          { label: '病案数量', value: '320', pct: '' },
+          { label: '评分数量', value: '186', pct: '58%' },
+          { label: '合格数量', value: '142', pct: '44%' }
+        ],
+        actions: [],
+        detailGranted: false, defaultTab: 'progress'
+      },
+      hospitalAdmin: {
+        name: '周院管', avatar: '周', badge: '医院管理员',
+        scope: '本院·医院B（100 例）',
+        perms: [
+          { t: '本院汇总', ok: true }, { t: '页面看患者明细', ok: false },
+          { t: '下载汇总脱敏', ok: true }, { t: '明细需勾选并发布', ok: false }
+        ],
+        kpi: [
+          { label: '入组人数', value: '85', sub: '本院', trend: '' },
+          { label: '随访人数', value: '70', sub: '至少完成1次随访', trend: '' },
+          { label: '随访率', value: '82%', sub: '随访人数÷入组人数', trend: '' },
+          { label: '随访完成率', value: '35/65（53.8%）', sub: '已完成随访人次÷计划随访人次', trend: '' },
+          { label: '数据完整率', value: '88%', sub: '按项目必填配置', trend: '' }
+        ],
+        stats: [
+          { label: '病案数量', value: '100', pct: '' },
+          { label: '评分数量', value: '58', pct: '58%' },
+          { label: '合格数量', value: '44', pct: '44%' }
+        ],
+        actions: [],
+        detailGranted: false, defaultTab: 'progress'
+      },
+      superAdmin: {
+        name: '系统管理员', avatar: '系', badge: '超级管理员',
+        scope: '全项目（520 例）',
+        perms: [
+          { t: '全项目汇总', ok: true }, { t: '全量病案明细', ok: true },
+          { t: '下载脱敏', ok: true }, { t: '授权管理', ok: true }
+        ],
+        kpi: [
+          { label: '入组人数', value: '420', sub: '', trend: '' },
+          { label: '随访人数', value: '356', sub: '至少完成1次随访', trend: '' },
+          { label: '随访率', value: '85%', sub: '随访人数÷入组人数', trend: '' },
+          { label: '随访完成率', value: '35/65（53.8%）', sub: '已完成随访人次÷计划随访人次', trend: '' },
+          { label: '数据完整率', value: '91%', sub: '按项目必填配置', trend: '' }
+        ],
+        stats: [
+          { label: '病案数量', value: '520', pct: '' },
+          { label: '评分数量', value: '310', pct: '60%' },
+          { label: '合格数量', value: '245', pct: '47%' }
+        ],
+        actions: [],
+        detailGranted: true, defaultTab: 'overview'
+      },
+      deptDirector: {
+        name: '王主任', avatar: '王', badge: '科室管理员',
+        scope: '皮肤科·本院（85 例）',
+        perms: [
+          { t: '科室汇总', ok: true }, { t: '页面看患者明细', ok: false },
+          { t: '下载科室汇总', ok: true }, { t: '明细已勾选并发布', ok: true }
+        ],
+        kpi: [
+          { label: '入组人数', value: '38', sub: '本科室', trend: '' },
+          { label: '随访人数', value: '30', sub: '至少完成1次随访', trend: '' },
+          { label: '随访率', value: '79%', sub: '随访人数÷入组人数', trend: '' },
+          { label: '随访完成率', value: '35/65（53.8%）', sub: '已完成随访人次÷计划随访人次', trend: '' },
+          { label: '数据完整率', value: '88%', sub: '按项目必填配置', trend: '' }
+        ],
+        stats: [
+          { label: '病案数量', value: '85', pct: '' },
+          { label: '评分数量', value: '52', pct: '61%' },
+          { label: '合格数量', value: '38', pct: '45%' }
+        ],
+        actions: [],
+        detailGranted: true, defaultTab: 'progress'
+      },
+      doctor: {
+        name: '李医生', avatar: '李', badge: '普通医生',
+        scope: '本人患者（12 例）',
+        perms: [
+          { t: '本人汇总', ok: true }, { t: '本人病案明细', ok: true },
+          { t: '科室层级汇总', ok: false }, { t: '下载本人脱敏', ok: true }
+        ],
+        kpi: [
+          { label: '入组人数', value: '7', sub: '本人患者', trend: '' },
+          { label: '随访人数', value: '5', sub: '至少完成1次随访', trend: '' },
+          { label: '随访率', value: '71%', sub: '随访人数÷入组人数', trend: '' },
+          { label: '随访完成率', value: '35/65（53.8%）', sub: '已完成随访人次÷计划随访人次', trend: '' },
+          { label: '数据完整率', value: '92%', sub: '按项目必填配置', trend: '' }
+        ],
+        stats: [
+          { label: '病案数量', value: '12', pct: '' },
+          { label: '评分数量', value: '8', pct: '67%' },
+          { label: '合格数量', value: '5', pct: '42%' }
+        ],
+        actions: [],
+        detailGranted: true, defaultTab: 'overview'
+      },
+      assistant: {
+        name: '小陈助理', avatar: '陈', badge: '科研助理',
+        scope: '已绑定：李医生、张医生（并集汇总）',
+        perms: [
+          { t: '共享医生全部病案', ok: true }, { t: '可下载共享医生病案', ok: true },
+          { t: '可代录病案', ok: true }, { t: '新增必选管理医生', ok: true }
+        ],
+        kpi: [
+          { label: '入组人数', value: '17', sub: '绑定医生并集', trend: '' },
+          { label: '随访人数', value: '14', sub: '至少完成1次随访', trend: '' },
+          { label: '随访率', value: '82%', sub: '随访人数÷入组人数', trend: '' },
+          { label: '随访完成率', value: '35/65（53.8%）', sub: '已完成随访人次÷计划随访人次', trend: '' },
+          { label: '数据完整率', value: '90%', sub: '按项目必填配置', trend: '' }
+        ],
+        stats: [
+          { label: '可见病案', value: '17', pct: '' },
+          { label: '评分数量', value: '10', pct: '59%' },
+          { label: '合格数量', value: '7', pct: '41%' }
+        ],
+        actions: [],
+        boundDoctors: ['李医生', '张医生'],
+        sharedDoctors: ['李医生', '张医生'],
+        detailGranted: true, defaultTab: 'overview'
+      },
+      researcher: {
+        name: '陈统计', avatar: '陈', badge: '科研人员',
+        scope: '角色指派管辖：医院A+B 汇总（220 例）',
+        perms: [
+          { t: '管辖范围仪表板', ok: true }, { t: '本账户病案下载', ok: true },
+          { t: '跨主体明细下载', ok: false }, { t: '下载一律脱敏', ok: true }
+        ],
+        kpi: [
+          { label: '入组人数', value: '220', sub: '管辖范围内', trend: '' },
+          { label: '随访人数', value: '180', sub: '至少完成1次随访', trend: '' },
+          { label: '随访率', value: '82%', sub: '随访人数÷入组人数', trend: '' },
+          { label: '随访完成率', value: '35/65（53.8%）', sub: '已完成随访人次÷计划随访人次', trend: '' },
+          { label: '数据完整率', value: '89%', sub: '按项目必填配置', trend: '' }
+        ],
+        stats: [
+          { label: '病案数量', value: '220', pct: '汇总' },
+          { label: '评分数量', value: '128', pct: '58%' },
+          { label: '合格数量', value: '96', pct: '44%' }
+        ],
+        actions: [],
+        researcherDetail: false, detailGranted: false, defaultTab: 'analysis'
+      }
+    };
+
+    let currentRole = 'multiCenterAdmin';
+    let currentTab = 'progress';
+
+    function setRole(role) {
+      currentRole = role;
+      const r = ROLES[role];
+      document.getElementById('role-user-name').textContent = r.name;
+      document.getElementById('role-avatar').textContent = r.avatar;
+      document.getElementById('role-badge').textContent = r.badge;
+      document.getElementById('role-scope').textContent = '📊 汇总范围：' + r.scope + ' · 仪表板仅汇总';
+      const navAdmin = document.getElementById('nav-admin');
+      if (navAdmin) navAdmin.style.display = role === 'superAdmin' ? '' : 'none';
+      setupFiltersForRole(role);
+      document.querySelectorAll('.dev-menu-item[data-role]').forEach(el => {
+        el.classList.toggle('active', el.dataset.role === role);
+      });
+      renderOverview();
+      renderProgress();
+      const tab = ['overview','progress','analysis'].includes(r.defaultTab) ? r.defaultTab : 'overview';
+      switchTab(tab);
+      drawAllCharts();
+      showToast('已切换为：' + r.badge);
+    }
+
+    // 组织树：医院 → 科室 → 医生（中心=医院）
+    const ORG_TREE = {
+      '医院A': {
+        '皮肤科': ['李医生', '王医生'],
+        '过敏科': ['张医生']
+      },
+      '医院B': {
+        '皮肤科': ['赵医生', '周医生'],
+        '过敏科': ['钱医生']
+      },
+      '医院C': {
+        '皮肤科': ['孙医生'],
+        '风湿免疫科': ['吴医生', '郑医生']
+      }
+    };
+
+    // 矩阵筛选：医院/科室/医生多选；点「确定」后仅刷新矩阵
+    let filterDraft = { hospitals: [], depts: [], doctors: [] };
+    let matrixFilterApplied = { hospitals: [], depts: [], doctors: [] };
+    let hospitalOptions = [];
+    let openFilterPanel = null;
+    let matrixKind = 'hospital'; // hospital | doctorHospital | doctorDept
+
+    function getDeptsForHospitals(hospitals) {
+      const hs = hospitals.length ? hospitals : hospitalOptions;
+      let depts = [];
+      hs.forEach(h => {
+        if (ORG_TREE[h]) depts = depts.concat(Object.keys(ORG_TREE[h]));
+      });
+      return [...new Set(depts)];
+    }
+
+    function getDoctorsForFilters(hospitals, depts) {
+      const hs = hospitals.length ? hospitals : hospitalOptions;
+      const ds = depts.length ? depts : null;
+      let doctors = [];
+      hs.forEach(h => {
+        if (!ORG_TREE[h]) return;
+        Object.keys(ORG_TREE[h]).forEach(d => {
+          if (ds && !ds.includes(d)) return;
+          doctors = doctors.concat(ORG_TREE[h][d] || []);
+        });
+      });
+      return [...new Set(doctors)];
+    }
+
+    function updateMultiFilterBtn(kind) {
+      const btn = document.getElementById('btn-filter-' + kind);
+      if (!btn) return;
+      const map = { hospital: 'hospitals', dept: 'depts', doctor: 'doctors' };
+      const labelMap = { hospital: '医院', dept: '科室', doctor: '医生' };
+      const arr = filterDraft[map[kind]] || [];
+      const label = labelMap[kind];
+      if (!arr.length) btn.textContent = label + '：全部 ▾';
+      else if (arr.length <= 2) btn.textContent = label + '：' + arr.join('、') + ' ▾';
+      else btn.textContent = label + '：已选 ' + arr.length + ' 项 ▾';
+    }
+
+    function renderMultiFilterPanel(kind) {
+      const panel = document.getElementById('panel-filter-' + kind);
+      if (!panel) return;
+      let options = [];
+      let selected = [];
+      if (kind === 'hospital') {
+        options = hospitalOptions;
+        selected = filterDraft.hospitals;
+      } else if (kind === 'dept') {
+        options = getDeptsForHospitals(filterDraft.hospitals);
+        filterDraft.depts = filterDraft.depts.filter(d => options.includes(d));
+        selected = filterDraft.depts;
+      } else {
+        options = getDoctorsForFilters(filterDraft.hospitals, filterDraft.depts);
+        filterDraft.doctors = filterDraft.doctors.filter(d => options.includes(d));
+        selected = filterDraft.doctors;
+      }
+      panel.innerHTML =
+        '<label><input type="checkbox" ' + (selected.length === 0 ? 'checked' : '') +
+        ' onchange="multiFilterSelectAll(\'' + kind + '\', this.checked)"> 全部</label>' +
+        options.map(o =>
+          '<label><input type="checkbox" value="' + o + '" ' +
+          (selected.includes(o) ? 'checked' : '') +
+          ' onchange="onMultiFilterChange(\'' + kind + '\')"> ' + o + '</label>'
+        ).join('');
+      updateMultiFilterBtn(kind);
+    }
+
+    function multiFilterSelectAll(kind, checked) {
+      const key = kind === 'hospital' ? 'hospitals' : kind === 'dept' ? 'depts' : 'doctors';
+      if (checked) filterDraft[key] = [];
+      renderMultiFilterPanel(kind);
+      if (kind === 'hospital') {
+        renderMultiFilterPanel('dept');
+        renderMultiFilterPanel('doctor');
+      } else if (kind === 'dept') {
+        renderMultiFilterPanel('doctor');
+      }
+    }
+
+    function onMultiFilterChange(kind) {
+      const panel = document.getElementById('panel-filter-' + kind);
+      const boxes = [...panel.querySelectorAll('input[type=checkbox][value]')];
+      const picked = boxes.filter(b => b.checked).map(b => b.value);
+      if (kind === 'hospital') {
+        filterDraft.hospitals = picked;
+        renderMultiFilterPanel('hospital');
+        renderMultiFilterPanel('dept');
+        renderMultiFilterPanel('doctor');
+      } else if (kind === 'dept') {
+        filterDraft.depts = picked;
+        renderMultiFilterPanel('dept');
+        renderMultiFilterPanel('doctor');
+      } else {
+        filterDraft.doctors = picked;
+        renderMultiFilterPanel('doctor');
+      }
+    }
+
+    function toggleMultiFilter(kind) {
+      const panel = document.getElementById('panel-filter-' + kind);
+      if (!panel) return;
+      const willOpen = !panel.classList.contains('open');
+      document.querySelectorAll('.multi-filter-panel').forEach(p => p.classList.remove('open'));
+      if (willOpen) {
+        renderMultiFilterPanel(kind);
+        panel.classList.add('open');
+        openFilterPanel = kind;
+      } else {
+        openFilterPanel = null;
+      }
+    }
+
+    function applyMatrixFilters() {
+      document.querySelectorAll('.multi-filter-panel').forEach(p => p.classList.remove('open'));
+      openFilterPanel = null;
+      matrixFilterApplied = {
+        hospitals: filterDraft.hospitals.slice(),
+        depts: filterDraft.depts.slice(),
+        doctors: filterDraft.doctors.slice()
+      };
+      matrixPage = 1;
+      doctorMatrixPage = 1;
+      renderMatrixTableOnly();
+      const bits = [];
+      if (matrixFilterApplied.hospitals.length) bits.push('医院[' + matrixFilterApplied.hospitals.join('、') + ']');
+      if (matrixFilterApplied.depts.length) bits.push('科室[' + matrixFilterApplied.depts.join('、') + ']');
+      if (matrixFilterApplied.doctors.length) bits.push('医生[' + matrixFilterApplied.doctors.join('、') + ']');
+      showToast(bits.length ? '已按条件筛选矩阵（示意）' : '已按全部范围刷新矩阵（示意）');
+    }
+
+    function setupFiltersForRole(role) {
+      const wrapH = document.getElementById('wrap-filter-hospital');
+      const wrapD = document.getElementById('wrap-filter-dept');
+      const wrapDoc = document.getElementById('wrap-filter-doctor');
+      const filterBar = document.getElementById('matrix-filter-bar');
+      const allH = Object.keys(ORG_TREE);
+      const adminRoles = ['multiCenterAdmin', 'superAdmin', 'hospitalAdmin', 'deptDirector'];
+
+      if (!wrapH || !wrapD || !wrapDoc) return;
+
+      if (role === 'multiCenterAdmin' || role === 'superAdmin') {
+        hospitalOptions = allH;
+        wrapH.style.display = '';
+        wrapD.style.display = '';
+        wrapDoc.style.display = '';
+        filterDraft = { hospitals: [], depts: [], doctors: [] };
+      } else if (role === 'hospitalAdmin') {
+        hospitalOptions = ['医院B'];
+        wrapH.style.display = '';
+        wrapD.style.display = '';
+        wrapDoc.style.display = '';
+        filterDraft = { hospitals: ['医院B'], depts: [], doctors: [] };
+      } else if (role === 'deptDirector') {
+        hospitalOptions = ['医院A'];
+        wrapH.style.display = 'none';
+        wrapD.style.display = '';
+        wrapDoc.style.display = '';
+        filterDraft = { hospitals: ['医院A'], depts: ['皮肤科'], doctors: [] };
+      } else {
+        hospitalOptions = [];
+        filterDraft = { hospitals: [], depts: [], doctors: [] };
+        matrixFilterApplied = { hospitals: [], depts: [], doctors: [] };
+        if (filterBar) filterBar.style.display = 'none';
+        return;
+      }
+
+      if (filterBar) filterBar.style.display = adminRoles.includes(role) ? 'flex' : 'none';
+      matrixFilterApplied = {
+        hospitals: filterDraft.hospitals.slice(),
+        depts: filterDraft.depts.slice(),
+        doctors: filterDraft.doctors.slice()
+      };
+      renderMultiFilterPanel('hospital');
+      renderMultiFilterPanel('dept');
+      renderMultiFilterPanel('doctor');
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.multi-filter')) {
+        document.querySelectorAll('.multi-filter-panel').forEach(p => p.classList.remove('open'));
+        openFilterPanel = null;
+      }
+    });
+
+    function onTimeRangeChange() {
+      const start = document.getElementById('filter-time-start').value;
+      const end = document.getElementById('filter-time-end').value;
+      if (start && end && start > end) {
+        showToast('开始日期不能晚于结束日期');
+        return;
+      }
+      if (start && end) {
+        showToast('已按时间范围 ' + start + ' — ' + end + ' 刷新汇总（示意）');
+        renderOverview();
+        renderProgress();
+        drawAllCharts();
+      }
+    }
+
+    function clearTimeRange() {
+      document.getElementById('filter-time-start').value = '';
+      document.getElementById('filter-time-end').value = '';
+      showToast('已清除时间范围，按全部时间汇总（示意）');
+      renderOverview();
+      renderProgress();
+      drawAllCharts();
+    }
+
+    function showPage(page) {
+      document.querySelectorAll('.sidebar-nav-item').forEach(el => {
+        el.classList.toggle('active', el.dataset.page === page);
+      });
+      ['dashboard','cases','admin','settings'].forEach(p => {
+        const el = document.getElementById('page-' + p);
+        if (el) el.style.display = p === page ? '' : 'none';
+      });
+      if (page === 'cases') renderCases();
+      if (page === 'settings') renderSettings();
+      if (page === 'admin') {
+        if (currentRole !== 'superAdmin') {
+          showToast('仅超级管理员可进入授权管理');
+          showPage('dashboard');
+          return;
+        }
+        switchAdminSub('roles');
+      }
+    }
+
+    let currentSettingsTab = 'account';
+
+    function switchSettingsTab(tab) {
+      currentSettingsTab = tab;
+      document.querySelectorAll('.settings-tab').forEach(el => {
+        el.classList.toggle('active', el.dataset.settingsTab === tab);
+      });
+      renderSettingsContent();
+    }
+
+    function renderSettings() {
+      // 除科研人员外均有「绑定管理」（其他角色都可能是医生；助理侧确认绑定）
+      const bindTab = document.getElementById('settings-tab-binding');
+      const canBind = currentRole !== 'researcher';
+      if (bindTab) bindTab.style.display = canBind ? '' : 'none';
+      if (!canBind && currentSettingsTab === 'binding') currentSettingsTab = 'account';
+      // 助理进入设置时默认打开绑定管理（便于确认申请）
+      if (currentRole === 'assistant') currentSettingsTab = 'binding';
+      document.querySelectorAll('.settings-tab').forEach(el => {
+        el.classList.toggle('active', el.dataset.settingsTab === currentSettingsTab);
+      });
+      renderSettingsContent();
+    }
+
+    function renderSettingsContent() {
+      const box = document.getElementById('settings-content');
+      if (!box) return;
+      const tab = currentSettingsTab;
+
+      if (tab === 'account') {
+        box.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap">
+            <div style="flex:1;min-width:240px">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+                <span style="font-size:16px;font-weight:600">我的专属二维码</span>
+                <span class="badge badge-green">认证医生</span>
+              </div>
+              <p style="font-size:13px;color:#6b7280;margin-bottom:8px">系统已为您自动生成专属二维码，可用于打印张贴或分享给患者</p>
+              <p style="font-size:12px;color:#9ca3af;margin-bottom:16px">当前项目：通用版</p>
+              <label style="font-size:13px;display:block;margin-bottom:6px">疾病</label>
+              <select class="filter-select" style="min-width:200px"><option>特应性皮炎</option><option>慢性自发性荨麻疹</option></select>
+            </div>
+            <div style="text-align:center">
+              <div style="width:140px;height:140px;border-radius:50%;border:1px solid #e5e7eb;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;background:#f9fafb;font-size:12px;color:#9ca3af">二维码示意</div>
+              <a href="javascript:void(0)" style="font-size:13px;color:#dc2626" onclick="showToast('放大查看 / 下载（示意）')">放大查看 / 下载</a>
+            </div>
+          </div>`;
+        return;
+      }
+
+      if (tab === 'binding') {
+        renderBindingPanel(box);
+        return;
+      }
+
+      const titles = {
+        password: '密码管理',
+        tasks: '任务列表管理',
+        consent: '知情同意书管理',
+        robot: '机器人管理',
+        jump: '跳转设置',
+        identity: '身份认证'
+      };
+      box.innerHTML = `
+        <div style="font-size:16px;font-weight:600;margin-bottom:12px">${titles[tab] || '设置'}</div>
+        <p style="font-size:13px;color:#6b7280">本原型聚焦权限与绑定；「${titles[tab] || tab}」沿用产品现有能力，此处不展开。</p>`;
+    }
+
+    function renderBindingPanel(box) {
+      // 科研助理：确认/拒绝医生发起的绑定
+      if (currentRole === 'assistant') {
+        box.innerHTML = `
+          <div style="font-size:16px;font-weight:600;margin-bottom:8px">绑定管理</div>
+          <p style="font-size:13px;color:#6b7280;margin-bottom:16px">医生发起绑定后，请在此<strong>确认</strong>或<strong>拒绝</strong>。若医生选择「共享我的数据」，确认后你可在「我的病案」查看并下载该医生的<strong>全部病案</strong>，并可代录。</p>
+          <div style="font-size:14px;font-weight:600;margin-bottom:8px">待确认申请</div>
+          <table class="data-table" style="margin-bottom:20px">
+            <thead><tr><th>医生姓名</th><th>手机号</th><th>医院 / 科室</th><th>共享数据</th><th>申请时间</th><th>操作</th></tr></thead>
+            <tbody id="assistant-pending-tbody">
+              <tr data-doctor="王医生" data-share="yes">
+                <td>王医生</td><td>13900004444</td><td>医院A · 皮肤科</td>
+                <td><span class="badge badge-green">是</span></td><td>2026-07-21</td>
+                <td style="white-space:nowrap">
+                  <button class="btn btn-primary btn-sm" onclick="confirmBindRequest(this, '王医生', true)">确认绑定</button>
+                  <button class="btn btn-outline btn-sm" onclick="rejectBindRequest(this, '王医生')">拒绝</button>
+                </td>
+              </tr>
+              <tr data-doctor="赵医生" data-share="no">
+                <td>赵医生</td><td>13900003333</td><td>医院B · 皮肤科</td>
+                <td><span class="badge badge-gray">否</span></td><td>2026-07-22</td>
+                <td style="white-space:nowrap">
+                  <button class="btn btn-primary btn-sm" onclick="confirmBindRequest(this, '赵医生', false)">确认绑定</button>
+                  <button class="btn btn-outline btn-sm" onclick="rejectBindRequest(this, '赵医生')">拒绝</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="font-size:14px;font-weight:600;margin-bottom:8px">已绑定医生</div>
+          <table class="data-table">
+            <thead><tr><th>医生姓名</th><th>手机号</th><th>医院 / 科室</th><th>共享数据</th><th>状态</th><th>说明</th></tr></thead>
+            <tbody id="assistant-bound-tbody">
+              ${(ROLES.assistant.boundDoctors || []).map(d => {
+                const share = (ROLES.assistant.sharedDoctors || []).includes(d);
+                return `<tr><td>${d}</td><td>—</td><td>—</td>
+                <td><span class="badge ${share?'badge-green':'badge-gray'}">${share?'是':'否'}</span></td>
+                <td><span class="badge badge-green">已绑定</span></td>
+                <td style="font-size:12px;color:#9ca3af">${share?'可查看/下载该医生全部病案':'未共享数据，不可浏览该医生全部病案'}；解绑由医生发起</td></tr>`;
+              }).join('') ||
+                '<tr><td colspan="6" style="color:#9ca3af">暂无已绑定医生</td></tr>'}
+            </tbody>
+          </table>`;
+        return;
+      }
+
+      if (currentRole === 'researcher') {
+        box.innerHTML = `
+          <div style="font-size:16px;font-weight:600;margin-bottom:8px">绑定管理</div>
+          <p style="font-size:13px;color:#6b7280">科研人员不提供绑定管理功能。</p>`;
+        return;
+      }
+
+      // 医生侧：校验手机号 → 勾选是否共享数据 → 发起绑定
+      box.innerHTML = `
+        <div style="font-size:16px;font-weight:600;margin-bottom:8px">绑定管理</div>
+        <p style="font-size:13px;color:#6b7280;margin-bottom:16px">
+          先输入助理手机号并<strong>验证是否已注册</strong>；验证通过后勾选是否让助理<strong>共享我的数据</strong>。选择「是」且助理确认后，助理可在「我的病案」查看并<strong>下载你的全部病案</strong>。支持一助理绑多名医生；医生可直接解绑。
+        </p>
+        <div style="border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:16px;background:#fafafa">
+          <div class="toolbar" style="margin-bottom:12px;flex-wrap:wrap">
+            <input class="search-input" id="assistant-phone" placeholder="输入助理手机号（11位）" maxlength="11" style="min-width:200px" oninput="onAssistantPhoneInput()" />
+            <button type="button" class="btn btn-outline btn-sm" onclick="verifyAssistantPhone()">验证手机号</button>
+          </div>
+          <div id="bind-verify-tip" style="font-size:12px;color:#9ca3af;margin-bottom:12px">请先验证手机号是否已注册</div>
+          <div id="bind-share-block" style="display:none;margin-bottom:12px">
+            <div style="font-size:13px;font-weight:500;margin-bottom:8px">是否让助理共享我的数据 <span style="color:#dc2626">*</span></div>
+            <label style="font-size:13px;margin-right:16px;cursor:pointer">
+              <input type="radio" name="bind-share-data" value="yes" /> 是（助理可查看并下载我的全部病案）
+            </label>
+            <label style="font-size:13px;cursor:pointer">
+              <input type="radio" name="bind-share-data" value="no" /> 否（不共享病案明细）
+            </label>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" id="bind-submit-btn" disabled onclick="submitBindRequest()">发起绑定</button>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>助理姓名</th><th>手机号</th><th>共享数据</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody id="doctor-bind-tbody">
+            <tr>
+              <td>小陈助理</td><td>13500008888</td>
+              <td><span class="badge badge-green">是</span></td>
+              <td><span class="badge badge-green">已绑定</span></td>
+              <td><button class="btn btn-outline btn-sm" onclick="unbindAssistant(this)">解绑</button></td>
+            </tr>
+            <tr>
+              <td>小刘助理</td><td>13500009999</td>
+              <td><span class="badge badge-green">是</span></td>
+              <td><span class="badge badge-yellow">待对方确认</span></td>
+              <td><button class="btn btn-outline btn-sm" onclick="showToast('已撤回绑定申请')">撤回</button></td>
+            </tr>
+          </tbody>
+        </table>`;
+      window._bindVerified = null;
+    }
+
+    /** 演示：已注册助理手机号 */
+    const REGISTERED_ASSISTANT_PHONES = {
+      '13500008888': { name: '小陈助理' },
+      '13500009999': { name: '小刘助理' },
+      '13500007777': { name: '小周助理' }
+    };
+
+    function onAssistantPhoneInput() {
+      window._bindVerified = null;
+      const tip = document.getElementById('bind-verify-tip');
+      const shareBlock = document.getElementById('bind-share-block');
+      const btn = document.getElementById('bind-submit-btn');
+      if (tip) { tip.textContent = '手机号已变更，请重新验证'; tip.style.color = '#9ca3af'; }
+      if (shareBlock) shareBlock.style.display = 'none';
+      if (btn) btn.disabled = true;
+      document.querySelectorAll('input[name="bind-share-data"]').forEach(r => { r.checked = false; });
+    }
+
+    function verifyAssistantPhone() {
+      const input = document.getElementById('assistant-phone');
+      const tip = document.getElementById('bind-verify-tip');
+      const shareBlock = document.getElementById('bind-share-block');
+      const btn = document.getElementById('bind-submit-btn');
+      const phone = (input && input.value || '').trim();
+      if (!/^1\d{10}$/.test(phone)) {
+        tip.textContent = '请输入正确的 11 位手机号';
+        tip.style.color = '#dc2626';
+        window._bindVerified = null;
+        if (shareBlock) shareBlock.style.display = 'none';
+        if (btn) btn.disabled = true;
+        showToast('手机号格式不正确');
+        return;
+      }
+      const user = REGISTERED_ASSISTANT_PHONES[phone];
+      if (!user) {
+        tip.textContent = '未查找到该用户：该手机号尚未注册，无法发起绑定';
+        tip.style.color = '#dc2626';
+        window._bindVerified = null;
+        if (shareBlock) shareBlock.style.display = 'none';
+        if (btn) btn.disabled = true;
+        showToast('该手机号未注册');
+        return;
+      }
+      window._bindVerified = { phone, name: user.name };
+      tip.textContent = '验证通过：' + user.name + '（' + phone + '）已注册，请选择是否共享数据后发起绑定';
+      tip.style.color = '#059669';
+      if (shareBlock) shareBlock.style.display = '';
+      if (btn) btn.disabled = false;
+      showToast('手机号验证通过：' + user.name);
+    }
+
+    function submitBindRequest() {
+      if (!window._bindVerified) {
+        showToast('请先验证手机号是否已注册');
+        return;
+      }
+      const shareEl = document.querySelector('input[name="bind-share-data"]:checked');
+      if (!shareEl) {
+        showToast('请勾选是否让助理共享我的数据');
+        return;
+      }
+      const shareYes = shareEl.value === 'yes';
+      const { phone, name } = window._bindVerified;
+      const tbody = document.getElementById('doctor-bind-tbody');
+      if (tbody) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${name}</td><td>${phone}</td>
+          <td><span class="badge ${shareYes?'badge-green':'badge-gray'}">${shareYes?'是':'否'}</span></td>
+          <td><span class="badge badge-yellow">待对方确认</span></td>
+          <td><button class="btn btn-outline btn-sm" onclick="showToast('已撤回绑定申请');this.closest('tr').remove()">撤回</button></td>`;
+        tbody.insertBefore(tr, tbody.firstChild);
+      }
+      showToast(
+        shareYes
+          ? '已向「' + name + '」发送绑定申请（共享数据：是）。对方确认后可查看并下载你的全部病案。'
+          : '已向「' + name + '」发送绑定申请（共享数据：否）。对方确认后不共享你的病案明细。'
+      );
+      const input = document.getElementById('assistant-phone');
+      if (input) input.value = '';
+      onAssistantPhoneInput();
+      const tip = document.getElementById('bind-verify-tip');
+      if (tip) tip.textContent = '请先验证手机号是否已注册';
+    }
+
+    function confirmBindRequest(btn, doctorName, shareData) {
+      const tr = btn.closest('tr');
+      if (tr) {
+        if (typeof shareData === 'undefined') shareData = tr.dataset.share === 'yes';
+        tr.remove();
+      }
+      const bound = ROLES.assistant.boundDoctors || [];
+      if (!bound.includes(doctorName)) {
+        bound.push(doctorName);
+        ROLES.assistant.boundDoctors = bound;
+      }
+      ROLES.assistant.sharedDoctors = ROLES.assistant.sharedDoctors || [];
+      if (shareData && !ROLES.assistant.sharedDoctors.includes(doctorName)) {
+        ROLES.assistant.sharedDoctors.push(doctorName);
+      }
+      ROLES.assistant.scope = '已绑定：' + bound.join('、') + '（并集汇总）';
+      const tbody = document.getElementById('assistant-bound-tbody');
+      if (tbody) {
+        const empty = tbody.querySelector('td[colspan]');
+        if (empty) tbody.innerHTML = '';
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${doctorName}</td><td>—</td><td>—</td>
+          <td><span class="badge ${shareData?'badge-green':'badge-gray'}">${shareData?'是':'否'}</span></td>
+          <td><span class="badge badge-green">已绑定</span></td>
+          <td style="font-size:12px;color:#9ca3af">${shareData?'可查看/下载该医生全部病案':'未共享数据，不可浏览该医生全部病案'}；解绑由医生发起</td>`;
+        tbody.appendChild(row);
+      }
+      showToast(
+        shareData
+          ? '已确认与「' + doctorName + '」的绑定（共享数据：是），可在我的病案查看并下载其全部病案'
+          : '已确认与「' + doctorName + '」的绑定（共享数据：否）'
+      );
+    }
+
+    function rejectBindRequest(btn, doctorName) {
+      const tr = btn.closest('tr');
+      if (tr) tr.remove();
+      showToast('已拒绝「' + doctorName + '」的绑定申请');
+    }
+
+    function unbindAssistant(btn) {
+      const tr = btn.closest('tr');
+      if (tr) tr.remove();
+      showToast('已解绑，助理权限即时收回');
+    }
+
+    function switchAdminSub(sub) {
+      document.querySelectorAll('#admin-tabs .settings-tab').forEach(el => {
+        el.classList.toggle('active', el.dataset.adminTab === sub);
+      });
+      ['roles', 'hospitals', 'org', 'detail', 'completeness'].forEach(k => {
+        const el = document.getElementById('admin-sub-' + k);
+        if (el) el.style.display = k === sub ? '' : 'none';
+      });
+      if (sub === 'org') renderOrgUsers();
+      if (sub === 'hospitals') renderProjectHospitals();
+      if (sub === 'completeness') renderCompletenessTable();
+    }
+
+    const PROJECT_USERS = [
+      { name: '张管理', phone: '13800000001', hospital: '—', dept: '—', role: '多中心管理员' },
+      { name: '周院管', phone: '13800000002', hospital: '医院B', dept: '皮肤科', role: '医院管理员' },
+      { name: '王主任', phone: '13800000003', hospital: '医院A', dept: '皮肤科', role: '科室管理员' },
+      { name: '李医生', phone: '13900001111', hospital: '医院A', dept: '皮肤科', role: '普通医生' },
+      { name: '张医生', phone: '13900002222', hospital: '医院A', dept: '过敏科', role: '普通医生' },
+      { name: '赵医生', phone: '13900003333', hospital: '医院B', dept: '皮肤科', role: '普通医生' },
+      { name: '周医生', phone: '13900003334', hospital: '医院B', dept: '皮肤科', role: '普通医生' },
+      { name: '钱医生', phone: '13900003335', hospital: '医院B', dept: '过敏科', role: '普通医生' },
+      { name: '孙医生', phone: '13900004444', hospital: '医院C', dept: '皮肤科', role: '普通医生' },
+      { name: '吴医生', phone: '13900004445', hospital: '医院C', dept: '风湿免疫科', role: '普通医生' },
+      { name: '郑医生', phone: '13900004446', hospital: '医院C', dept: '风湿免疫科', role: '普通医生' },
+      { name: '冯医生', phone: '13900005551', hospital: '医院A', dept: '皮肤科', role: '普通医生' },
+      { name: '陈医生', phone: '13900005552', hospital: '医院A', dept: '过敏科', role: '普通医生' },
+      { name: '褚医生', phone: '13900005553', hospital: '医院B', dept: '皮肤科', role: '普通医生' },
+      { name: '卫医生', phone: '13900005554', hospital: '医院B', dept: '过敏科', role: '普通医生' },
+      { name: '蒋医生', phone: '13900005555', hospital: '医院C', dept: '皮肤科', role: '普通医生' },
+      { name: '沈医生', phone: '13900005556', hospital: '医院A', dept: '皮肤科', role: '普通医生' },
+      { name: '韩医生', phone: '13900005557', hospital: '医院B', dept: '皮肤科', role: '普通医生' },
+      { name: '杨医生', phone: '13900005558', hospital: '医院C', dept: '风湿免疫科', role: '普通医生' },
+      { name: '朱医生', phone: '13900005559', hospital: '医院A', dept: '过敏科', role: '普通医生' },
+      { name: '秦医生', phone: '13900005560', hospital: '医院B', dept: '皮肤科', role: '普通医生' },
+      { name: '尤医生', phone: '13900005561', hospital: '医院C', dept: '皮肤科', role: '普通医生' },
+      { name: '许医生', phone: '13900005562', hospital: '医院A', dept: '皮肤科', role: '普通医生' },
+      { name: '何医生', phone: '13900005563', hospital: '医院B', dept: '过敏科', role: '普通医生' },
+      { name: '吕医生', phone: '13900005564', hospital: '医院C', dept: '风湿免疫科', role: '普通医生' },
+      { name: '施医生', phone: '13900005565', hospital: '医院A', dept: '过敏科', role: '普通医生' },
+      { name: '小陈助理', phone: '13500008888', hospital: '医院A', dept: '皮肤科', role: '科研助理' },
+      { name: '陈统计', phone: '13600003456', hospital: '—', dept: '—', role: '科研人员' },
+      { name: '刘分析', phone: '13600007890', hospital: '—', dept: '—', role: '科研人员' }
+    ];
+
+    let orgFilterApplied = { name: '', phone: '', hospital: '', dept: '', role: '' };
+    let orgPage = 1;
+    const ORG_PAGE_SIZE = 10;
+
+    function applyOrgFilters() {
+      orgFilterApplied = {
+        name: (document.getElementById('org-th-name')?.value || '').trim(),
+        phone: (document.getElementById('org-th-phone')?.value || '').trim(),
+        hospital: (document.getElementById('org-th-hospital')?.value || '').trim(),
+        dept: (document.getElementById('org-th-dept')?.value || '').trim(),
+        role: (document.getElementById('org-th-role')?.value || '').trim()
+      };
+      orgPage = 1;
+      renderOrgUsers();
+      showToast('已按表头条件筛选组织用户');
+    }
+
+    function getFilteredOrgUsers() {
+      let list = PROJECT_USERS.slice();
+      const nameQ = orgFilterApplied.name;
+      const phoneQ = orgFilterApplied.phone;
+      const hQ = orgFilterApplied.hospital;
+      const dQ = orgFilterApplied.dept;
+      const roleQ = orgFilterApplied.role;
+      if (nameQ) list = list.filter(u => u.name.includes(nameQ));
+      if (phoneQ) list = list.filter(u => u.phone.includes(phoneQ));
+      if (hQ) list = list.filter(u => u.hospital.includes(hQ));
+      if (dQ) list = list.filter(u => u.dept.includes(dQ));
+      if (roleQ) list = list.filter(u => u.role.includes(roleQ));
+      return list;
+    }
+
+    function setOrgPage(p) {
+      const total = getFilteredOrgUsers().length;
+      const pages = Math.max(1, Math.ceil(total / ORG_PAGE_SIZE));
+      orgPage = Math.min(Math.max(1, p), pages);
+      renderOrgUsers();
+    }
+
+    function jumpOrgPage() {
+      const input = document.getElementById('org-page-jump');
+      const n = parseInt(input && input.value, 10);
+      if (!n || n < 1) {
+        showToast('请输入有效页码');
+        return;
+      }
+      setOrgPage(n);
+    }
+
+    function renderOrgUsers() {
+      const list = getFilteredOrgUsers();
+      const pages = Math.max(1, Math.ceil(list.length / ORG_PAGE_SIZE));
+      if (orgPage > pages) orgPage = pages;
+      const start = (orgPage - 1) * ORG_PAGE_SIZE;
+      const pageList = list.slice(start, start + ORG_PAGE_SIZE);
+      const tbody = document.getElementById('org-user-tbody');
+      tbody.innerHTML = pageList.map(u => `
+        <tr>
+          <td>${u.name}</td><td>${u.phone}</td><td>${u.hospital}</td><td>${u.dept}</td>
+          <td><span class="badge ${u.role.includes('科研')?'badge-yellow':'badge-blue'}">${u.role}</span></td>
+          <td><button class="btn btn-link btn-sm" onclick="goAssignRole('${u.phone}','${u.name}')">去角色指派</button></td>
+        </tr>`).join('') || '<tr><td colspan="6" style="color:#9ca3af">无匹配用户</td></tr>';
+
+      const pager = document.getElementById('org-pager');
+      if (!pager) return;
+      let nums = '';
+      for (let i = 1; i <= pages; i++) {
+        nums += `<button type="button" class="btn btn-sm ${i===orgPage?'btn-primary':'btn-outline'}" style="min-width:32px" onclick="setOrgPage(${i})">${i}</button>`;
+      }
+      pager.innerHTML = `
+        <span style="font-size:12px;color:#9ca3af;margin-right:4px">共 ${list.length} 人 · 每页 ${ORG_PAGE_SIZE}</span>
+        <button type="button" class="btn btn-outline btn-sm" ${orgPage<=1?'disabled':''} onclick="setOrgPage(${orgPage-1})">上一页</button>
+        ${nums}
+        <button type="button" class="btn btn-outline btn-sm" ${orgPage>=pages?'disabled':''} onclick="setOrgPage(${orgPage+1})">下一页</button>
+        <span style="font-size:12px;color:#6b7280">跳至</span>
+        <input id="org-page-jump" type="number" min="1" max="${pages}" value="${orgPage}"
+          style="width:56px;padding:4px 6px;border:1px solid #d1d5db;border-radius:6px;font-size:12px" />
+        <button type="button" class="btn btn-outline btn-sm" onclick="jumpOrgPage()">跳转</button>`;
+    }
+
+    function goAssignRole(phone, name) {
+      switchAdminSub('roles');
+      openAddRoleModal(phone, name);
+    }
+
+    /** 明细下载授权：勾选后才可点「发布」；仅已发布才可下载病案明细 */
+    const detailGrantState = {
+      1: { checked: false, published: false },
+      2: { checked: false, published: false },
+      3: { checked: true, published: true }
+    };
+
+    function syncDetailGrantRow(id) {
+      const st = detailGrantState[id];
+      const cb = document.getElementById('detail-grant-cb-' + id);
+      const badge = document.getElementById('detail-grant-pub-' + id);
+      const btn = document.getElementById('detail-grant-btn-' + id);
+      if (!st || !cb || !badge || !btn) return;
+      cb.checked = st.checked;
+      if (st.published) {
+        badge.textContent = '已发布';
+        badge.className = 'badge badge-green';
+        btn.textContent = '取消发布';
+        btn.className = 'btn btn-outline btn-sm';
+        btn.disabled = false;
+      } else {
+        badge.textContent = '未发布';
+        badge.className = 'badge badge-yellow';
+        btn.textContent = '发布';
+        btn.className = 'btn btn-primary btn-sm';
+        btn.disabled = !st.checked;
+      }
+    }
+
+    function onDetailGrantCheck(id) {
+      const cb = document.getElementById('detail-grant-cb-' + id);
+      const st = detailGrantState[id];
+      if (!cb || !st) return;
+      st.checked = cb.checked;
+      if (!st.checked) {
+        st.published = false;
+        showToast('已关闭允许明细下载，发布状态已收回');
+      } else {
+        showToast('已勾选允许明细下载，请点击「发布」后生效');
+      }
+      syncDetailGrantRow(id);
+    }
+
+    function publishDetailGrant(id) {
+      const st = detailGrantState[id];
+      if (!st) return;
+      if (st.published) {
+        st.published = false;
+        showToast('已取消发布：该管理员不可再下载管辖范围病案明细');
+      } else {
+        if (!st.checked) {
+          showToast('请先勾选「允许明细下载」再发布');
+          return;
+        }
+        st.published = true;
+        showToast('已发布：该管理员可下载管辖范围内病案明细（脱敏）');
+      }
+      syncDetailGrantRow(id);
+    }
+
+    let completenessFields = [
+      { name: '主诊断', id: 'dx_main', required: true },
+      { name: 'UCT评分', id: 'uct_score', required: true },
+      { name: '皮损照片', id: 'photo_skin', required: false }
+    ];
+
+    function renderCompletenessTable() {
+      const tbody = document.getElementById('completeness-preview');
+      if (!tbody) return;
+      tbody.innerHTML = completenessFields.map((f, i) => `
+        <tr>
+          <td><input class="form-input" style="width:100%;padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px" value="${f.name}" onchange="completenessFields[${i}].name=this.value" /></td>
+          <td><input class="form-input" style="width:100%;padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px" value="${f.id}" onchange="completenessFields[${i}].id=this.value" /></td>
+          <td>
+            <select class="filter-select" onchange="completenessFields[${i}].required=this.value==='1'">
+              <option value="1" ${f.required?'selected':''}>是</option>
+              <option value="0" ${!f.required?'selected':''}>否</option>
+            </select>
+          </td>
+          <td>
+            <button class="btn btn-outline btn-sm" onclick="removeCompletenessRow(${i})">删除</button>
+          </td>
+        </tr>`).join('') || '<tr><td colspan="4" style="color:#9ca3af">暂无字段，请新增或上传</td></tr>';
+    }
+
+    function addCompletenessRow() {
+      completenessFields.push({ name: '新字段', id: 'field_' + (completenessFields.length + 1), required: true });
+      renderCompletenessTable();
+      showToast('已新增一行，请编辑后发布');
+    }
+
+    function removeCompletenessRow(i) {
+      completenessFields.splice(i, 1);
+      renderCompletenessTable();
+      showToast('已删除该字段');
+    }
+
+    function downloadCompletenessTemplate() {
+      const csv = '字段名称,字段ID,是否必填\n主诊断,dx_main,是\nUCT评分,uct_score,是\n皮损照片,photo_skin,否\n';
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = '数据必填项配置模板.csv';
+      a.click();
+      showToast('已下载三列模板（字段名称、字段ID、是否必填）');
+    }
+
+    function onCompletenessFileSelected(input) {
+      const tip = document.getElementById('completeness-file-tip');
+      if (!input.files || !input.files[0]) {
+        tip.textContent = '可直接改表内行，或上传三列模板后发布';
+        return;
+      }
+      const name = input.files[0].name;
+      const ok = /\.(xlsx|xls|csv)$/i.test(name);
+      if (!ok) {
+        showToast('仅支持 Excel（.xlsx/.xls）或 CSV');
+        input.value = '';
+        return;
+      }
+      tip.textContent = '已选择：' + name + '（表头须为：字段名称、字段ID、是否必填）';
+      showToast('文件已选择：' + name);
+    }
+
+    function publishCompletenessConfig() {
+      const input = document.getElementById('completeness-file');
+      if (input.files && input.files[0]) {
+        // 示意：上传后覆盖为示例三列数据（作用于当前顶部已选项目）
+        completenessFields = [
+          { name: '主诊断', id: 'dx_main', required: true },
+          { name: 'UCT评分', id: 'uct_score', required: true },
+          { name: '随访日期', id: 'fu_date', required: true },
+          { name: '皮损照片', id: 'photo_skin', required: false }
+        ];
+        renderCompletenessTable();
+        document.getElementById('completeness-file-tip').textContent =
+          '已从「' + input.files[0].name + '」解析并发布（当前项目）';
+        showToast('已解析并发布数据必填项配置（示意）');
+        return;
+      }
+      if (!completenessFields.length) {
+        showToast('请先新增字段或上传文件');
+        return;
+      }
+      document.getElementById('completeness-file-tip').textContent =
+        '已发布表内 ' + completenessFields.length + ' 个字段（当前项目）';
+      showToast('已发布数据必填项配置（' + completenessFields.length + ' 项）');
+    }
+
+    function deleteRoleRow(btn) {
+      if (!confirm('确认删除该用户的此角色？删除后权限立即失效。')) return;
+      const tr = btn.closest('tr');
+      if (tr) tr.remove();
+      showToast('已删除角色');
+    }
+
+    function openAddRoleModal(prefillPhone, prefillName) {
+      document.getElementById('add-role-phone').value = prefillPhone || '';
+      document.getElementById('add-role-name').value = prefillName || '';
+      document.getElementById('add-role-type').value = '';
+      document.getElementById('add-role-lookup-tip').textContent = prefillPhone
+        ? '已从组织架构预填；可修改手机号后重新检索'
+        : '须为已注册且已加入本项目的用户';
+      document.getElementById('add-role-lookup-tip').style.color = prefillPhone ? '#059669' : '#9ca3af';
+      document.querySelectorAll('.add-scope-h').forEach(c => { c.checked = false; });
+      document.getElementById('add-scope-h-all').checked = false;
+      document.getElementById('add-scope-d-all').checked = false;
+      addScopeSelectedH = new Set();
+      const searchEl = document.getElementById('add-scope-hospital-search');
+      if (searchEl) searchEl.value = '';
+      renderAddScopeHospitals();
+      syncAddRoleScopeDepts();
+      document.getElementById('add-role-modal').classList.add('active');
+      if (prefillPhone && !prefillName) lookupProjectUser();
+    }
+
+    function closeAddRoleModal(e) {
+      if (e && e.target !== document.getElementById('add-role-modal')) return;
+      document.getElementById('add-role-modal').classList.remove('active');
+    }
+
+    function lookupProjectUser() {
+      const phone = document.getElementById('add-role-phone').value.trim();
+      const tip = document.getElementById('add-role-lookup-tip');
+      const nameEl = document.getElementById('add-role-name');
+      if (!phone) {
+        tip.textContent = '请先输入手机号';
+        tip.style.color = '#dc2626';
+        nameEl.value = '';
+        return;
+      }
+      const u = PROJECT_USERS.find(x => x.phone === phone || x.phone.replace(/\D/g,'') === phone.replace(/\D/g,''));
+      if (!u) {
+        tip.textContent = '未查找到该用户（须已注册且已加入本项目）';
+        tip.style.color = '#dc2626';
+        nameEl.value = '';
+        return;
+      }
+      nameEl.value = u.name;
+      tip.textContent = '已匹配：' + u.name + ' · ' + u.role;
+      tip.style.color = '#059669';
+    }
+
+    function onAddRoleTypeChange() {
+      const role = document.getElementById('add-role-type').value;
+      const wrap = document.getElementById('add-role-scope-wrap');
+      if (role === '多中心管理员') {
+        wrap.style.opacity = '0.7';
+        document.getElementById('add-scope-h-all').checked = true;
+        toggleAddScopeAll('hospital', true);
+      } else {
+        wrap.style.opacity = '1';
+      }
+    }
+
+    // 系统内已存在医院（供医院列表手动关联）
+    const SYSTEM_HOSPITALS = (() => {
+      const base = Object.keys(ORG_TREE);
+      const extra = [];
+      for (let i = 1; i <= 40; i++) extra.push('示范医院' + i);
+      return [...base, ...extra];
+    })();
+
+    /** 当前项目医院名单：关联后的系统医院名进入新增角色可选列表 */
+    let projectHospitalRows = [
+      { project: '南方荨麻疹专病联盟（SCUA）', excelName: '医院A', systemName: '医院A', linked: true },
+      { project: '南方荨麻疹专病联盟（SCUA）', excelName: '医院B', systemName: '医院B', linked: true },
+      { project: '南方荨麻疹专病联盟（SCUA）', excelName: '医院C', systemName: '医院C', linked: true }
+    ];
+
+    function getScopeHospitals() {
+      const linked = projectHospitalRows.filter(r => r.linked && r.systemName).map(r => r.systemName);
+      return [...new Set(linked.length ? linked : Object.keys(ORG_TREE))];
+    }
+
+    let addScopeSelectedH = new Set();
+
+    function renderProjectHospitals() {
+      const tbody = document.getElementById('project-hospital-tbody');
+      if (!tbody) return;
+      const opts = SYSTEM_HOSPITALS.map(h => `<option value="${h}">${h}</option>`).join('');
+      tbody.innerHTML = projectHospitalRows.map((r, i) => `
+        <tr>
+          <td><input class="form-input" style="width:100%;padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px" value="${r.project}" onchange="projectHospitalRows[${i}].project=this.value" /></td>
+          <td><input class="form-input" style="width:100%;padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px" value="${r.excelName}" onchange="projectHospitalRows[${i}].excelName=this.value" /></td>
+          <td>
+            <select class="filter-select" style="width:100%" onchange="onProjectHospitalLink(${i}, this.value)">
+              <option value="">请选择系统医院关联</option>
+              ${SYSTEM_HOSPITALS.map(h => `<option value="${h}" ${r.systemName===h?'selected':''}>${h}</option>`).join('')}
+            </select>
+          </td>
+          <td><button class="btn btn-outline btn-sm" onclick="removeProjectHospitalRow(${i})">删除</button></td>
+        </tr>`).join('') || '<tr><td colspan="4" style="color:#9ca3af">暂无医院，请上传或新增</td></tr>';
+    }
+
+    function onProjectHospitalLink(i, val) {
+      projectHospitalRows[i].systemName = val;
+      projectHospitalRows[i].linked = !!val;
+      renderProjectHospitals();
+      showToast(val ? ('已关联系统医院：' + val) : '已取消关联');
+    }
+
+    function addProjectHospitalRow() {
+      projectHospitalRows.push({ project: '南方荨麻疹专病联盟（SCUA）', excelName: '新医院', systemName: '', linked: false });
+      renderProjectHospitals();
+      showToast('已新增一行，请填写并关联系统医院');
+    }
+
+    function removeProjectHospitalRow(i) {
+      projectHospitalRows.splice(i, 1);
+      renderProjectHospitals();
+      showToast('已删除该医院行');
+    }
+
+    function downloadHospitalTemplate() {
+      const csv = '项目名称,医院名称\n南方荨麻疹专病联盟（SCUA）,医院A\n南方荨麻疹专病联盟（SCUA）,医院B\n';
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = '医院列表模板.csv';
+      a.click();
+      showToast('已下载模板（项目名称、医院名称）');
+    }
+
+    function onHospitalFileSelected(input) {
+      const tip = document.getElementById('hospital-file-tip');
+      if (!input.files || !input.files[0]) {
+        tip.textContent = '上传医院列表 excel，手动关联系统内已存在的医院';
+        return;
+      }
+      const name = input.files[0].name;
+      if (!/\.(xlsx|xls|csv)$/i.test(name)) {
+        showToast('仅支持 Excel 或 CSV');
+        input.value = '';
+        return;
+      }
+      tip.textContent = '已选择：' + name + '（表头须为：项目名称、医院名称）';
+      showToast('文件已选择：' + name);
+    }
+
+    function parseHospitalFile() {
+      const input = document.getElementById('hospital-list-file');
+      if (!input.files || !input.files[0]) {
+        showToast('请先选择 Excel/CSV 文件');
+        return;
+      }
+      // 原型示意：解析后追加待关联行
+      const demo = [
+        { project: '南方荨麻疹专病联盟（SCUA）', excelName: '华西医院（示意）', systemName: '', linked: false },
+        { project: '南方荨麻疹专病联盟（SCUA）', excelName: '中山医院（示意）', systemName: '', linked: false }
+      ];
+      projectHospitalRows = projectHospitalRows.concat(demo);
+      renderProjectHospitals();
+      document.getElementById('hospital-file-tip').textContent =
+        '已从「' + input.files[0].name + '」解析 ' + demo.length + ' 行，请手动关联系统内医院';
+      showToast('已解析并加入列表，请关联系统医院');
+    }
+
+    function renderAddScopeHospitals() {
+      const q = (document.getElementById('add-scope-hospital-search')?.value || '').trim();
+      const box = document.getElementById('add-scope-hospital-options');
+      if (!box) return;
+      const list = getScopeHospitals().filter(h => !q || h.includes(q));
+      box.innerHTML = list.slice(0, 30).map(h =>
+        `<label style="display:inline-block;font-size:12px;margin:0 10px 6px 0">
+          <input type="checkbox" class="add-scope-h" value="${h}" ${addScopeSelectedH.has(h)?'checked':''}
+            onchange="onAddScopeHospitalToggle(this)"> ${h}</label>`
+      ).join('') + (list.length > 30 ? `<div style="font-size:11px;color:#9ca3af">仅显示前30条匹配，请缩小搜索</div>` : '');
+      const visible = [...box.querySelectorAll('.add-scope-h')];
+      document.getElementById('add-scope-h-all').checked =
+        visible.length > 0 && visible.every(c => c.checked);
+    }
+
+    function onAddScopeHospitalToggle(el) {
+      if (el.checked) addScopeSelectedH.add(el.value);
+      else addScopeSelectedH.delete(el.value);
+      syncAddRoleScopeDepts();
+      renderAddScopeHospitals();
+    }
+
+    function toggleAddScopeAll(kind, checked) {
+      if (kind === 'hospital') {
+        const visible = [...document.querySelectorAll('.add-scope-h')];
+        visible.forEach(c => {
+          c.checked = checked;
+          if (checked) addScopeSelectedH.add(c.value);
+          else addScopeSelectedH.delete(c.value);
+        });
+        syncAddRoleScopeDepts();
+        if (checked) {
+          document.getElementById('add-scope-d-all').checked = true;
+          toggleAddScopeAll('dept', true);
+        }
+      } else {
+        document.querySelectorAll('.add-scope-d').forEach(c => { c.checked = checked; });
+      }
+    }
+
+    function syncAddRoleScopeDepts() {
+      const hs = [...addScopeSelectedH].filter(h => ORG_TREE[h]);
+      // 未在 ORG_TREE 的示意医院：给默认科室
+      const box = document.getElementById('add-scope-dept-options');
+      if (!addScopeSelectedH.size) {
+        box.innerHTML = '<span style="color:#9ca3af">请先选择医院</span>';
+        return;
+      }
+      let depts = [];
+      addScopeSelectedH.forEach(h => {
+        if (ORG_TREE[h]) depts = depts.concat(Object.keys(ORG_TREE[h]));
+        else depts = depts.concat(['皮肤科', '过敏科']);
+      });
+      depts = [...new Set(depts)];
+      box.innerHTML = depts.map(d =>
+        '<label style="margin-right:8px"><input type="checkbox" class="add-scope-d" value="' + d + '"> ' + d + '</label>'
+      ).join('');
+    }
+
+    function getAddRoleScopeText() {
+      const role = document.getElementById('add-role-type').value;
+      if (role === '多中心管理员') return '项目全部医院';
+      const hs = [...addScopeSelectedH];
+      const ds = [...document.querySelectorAll('.add-scope-d:checked')].map(c => c.value);
+      if (!hs.length) return '—';
+      if (document.getElementById('add-scope-h-all').checked && (!ds.length || document.getElementById('add-scope-d-all').checked)) {
+        return hs.length + ' 家医院（当前全选）';
+      }
+      if (ds.length) return hs.slice(0, 3).join('+') + (hs.length > 3 ? '等' + hs.length + '家' : '') + ' · ' + ds.join('、');
+      return hs.slice(0, 3).join('+') + (hs.length > 3 ? '等' + hs.length + '家' : '');
+    }
+
+    function confirmAddRole() {
+      const name = document.getElementById('add-role-name').value.trim();
+      const phone = document.getElementById('add-role-phone').value.trim();
+      const role = document.getElementById('add-role-type').value;
+      const scope = getAddRoleScopeText();
+      if (!phone) { showToast('请先输入手机号并检索'); return; }
+      if (!name) { showToast('未查找到该用户，无法指派'); return; }
+      if (!role) { showToast('请选择角色'); return; }
+      const tbody = document.getElementById('admin-role-tbody');
+      const tr = document.createElement('tr');
+      const badgeClass = role === '科研人员' ? 'badge-yellow' : 'badge-blue';
+      tr.innerHTML = `<td>${name}</td><td>${phone}</td><td><span class="badge ${badgeClass}">${role}</span></td>
+        <td>${scope || '—'}</td>
+        <td><button class="btn btn-outline btn-sm" onclick="deleteRoleRow(this)">删除角色</button></td>`;
+      tbody.appendChild(tr);
+      document.getElementById('add-role-modal').classList.remove('active');
+      showToast('已新增角色：' + name + ' · ' + role);
+    }
+
+    const ALL_CASES = [
+      { id: '20260526', name: '张**', phone: '138****1111', doctor: '李医生', tag: '特应性皮炎', status: '进行中' },
+      { id: '20260515', name: '王**', phone: '139****2222', doctor: '李医生', tag: '特应性皮炎', status: '已完成' },
+      { id: '20260402', name: '赵**', phone: '137****3333', doctor: '张医生', tag: 'CSU', status: '超时' },
+      { id: '20260318', name: '刘**', phone: '136****4444', doctor: '王医生', tag: 'CSU', status: '进行中' },
+      { id: 'P-90001', name: '脱敏样本', phone: '—', doctor: '—', tag: '授权脱敏', status: '已完成', masked: true }
+    ];
+
+    function getVisibleCases() {
+      const r = ROLES[currentRole];
+      // 「我的病案」仅本人绑定/添加：医生=管理医生本人；助理=已绑定医生；其余角色列表为空（范围个案仅可下载）
+      if (currentRole === 'doctor') return ALL_CASES.filter(c => c.doctor === '李医生' && !c.masked);
+      if (currentRole === 'assistant') {
+        const doctors = r.boundDoctors || [];
+        let list = ALL_CASES.filter(c => doctors.includes(c.doctor) && !c.masked);
+        const f = document.getElementById('cases-doctor-filter');
+        if (f && f.value && f.value !== 'all') list = list.filter(c => c.doctor === f.value);
+        return list;
+      }
+      return [];
+    }
+
+    function renderCases() {
+      const list = getVisibleCases();
+      const tip = document.getElementById('cases-scope-tip');
+      const r = ROLES[currentRole];
+      const btnAdd = document.getElementById('btn-add-case');
+      const doctorFilterWrap = document.getElementById('cases-doctor-filter-wrap');
+      const canBrowse = currentRole === 'doctor' || currentRole === 'assistant';
+
+      if (btnAdd) btnAdd.style.display = canBrowse ? '' : 'none';
+      if (doctorFilterWrap) doctorFilterWrap.style.display = currentRole === 'assistant' ? '' : 'none';
+      if (currentRole === 'assistant') {
+        const sel = document.getElementById('cases-doctor-filter');
+        if (sel && !sel.dataset.ready) {
+          const doctors = r.boundDoctors || [];
+          sel.innerHTML = '<option value="all">管理医生：全部</option>' +
+            doctors.map(d => `<option value="${d}">${d}</option>`).join('');
+          sel.dataset.ready = '1';
+        }
+      }
+
+      if (currentRole === 'assistant') {
+        tip.textContent = '科研助理：对已「共享数据」的医生，可查看并下载其全部病案；可用上方筛选按管理医生过滤。当前共享：' + ((r.sharedDoctors||[]).join('、') || '无');
+      } else if (currentRole === 'doctor') {
+        tip.textContent = '医生：仅展示管理医生=本人的病案（含本人添加）。';
+      } else if (currentRole === 'researcher') {
+        tip.textContent = '科研人员：角色指派后可看管辖范围仪表板汇总；「我的病案」无跨主体个案；下载报告仅限本账户病案数据。';
+      } else if (['multiCenterAdmin','hospitalAdmin','deptDirector','superAdmin'].includes(currentRole)) {
+        tip.textContent = '管理员：权力范围内个案不进入「我的病案」；须在授权管理「明细下载授权」勾选并发布后，才可下载管辖范围病案明细。本页仅本人绑定/添加病案。';
+      } else {
+        tip.textContent = '仅展示本人绑定/添加的病案。';
+      }
+
+      const ul = document.getElementById('cases-list');
+      const downloadHint = '';
+
+      if (!list.length) {
+        ul.innerHTML = '<li style="padding:16px;color:#9ca3af;font-size:12px">' +
+          (canBrowse ? '暂无可见病案' : '本页无列表；范围个案请使用右上角下载') + '</li>';
+        document.getElementById('case-detail-id').textContent = 'ID：—';
+        document.getElementById('case-detail-name').textContent = '—';
+        document.getElementById('case-detail-phone').textContent = '—';
+        document.getElementById('case-detail-doctor').textContent = '—';
+        document.getElementById('case-detail-tag').textContent = '—';
+        document.getElementById('case-detail-body').innerHTML = tip.textContent;
+        return;
+      }
+      ul.innerHTML = list.map((c, i) => `
+        <li class="cases-list-item ${i===0?'active':''}" style="padding:10px 12px;cursor:pointer;border-radius:8px;margin-bottom:4px;${i===0?'background:#fee2e2':''}"
+            onclick="selectCase('${c.id}')">
+          <div style="font-weight:600;font-size:13px">ID：${c.id}</div>
+          <div style="font-size:11px;color:#9ca3af">管理医生：${c.doctor}</div>
+        </li>`).join('');
+      selectCase(list[0].id);
+    }
+
+    function selectCase(id) {
+      const c = getVisibleCases().find(x => x.id === id) || ALL_CASES.find(x => x.id === id);
+      if (!c) return;
+      document.querySelectorAll('#cases-list .cases-list-item').forEach(el => {
+        const active = el.textContent.includes(id);
+        el.style.background = active ? '#fee2e2' : '';
+      });
+      document.getElementById('case-detail-id').textContent = 'ID：' + c.id;
+      document.getElementById('case-detail-name').textContent = c.name;
+      document.getElementById('case-detail-phone').textContent = c.phone;
+      document.getElementById('case-detail-doctor').textContent = c.doctor;
+      document.getElementById('case-detail-tag').textContent = c.tag;
+      document.getElementById('case-detail-body').innerHTML =
+        `<p>随访状态：<span class="badge ${c.status==='超时'?'badge-red':c.status==='已完成'?'badge-green':'badge-blue'}">${c.status}</span></p>
+         <p style="margin-top:12px;color:#6b7280">右上角已展示「管理医生」标识，用于确认病案归属。</p>`;
+    }
+
+    function openAddCaseModal() {
+      const sel = document.getElementById('add-case-doctor');
+      const field = document.getElementById('managing-doctor-field');
+      if (currentRole === 'assistant') {
+        field.style.display = '';
+        const doctors = ROLES.assistant.boundDoctors || [];
+        sel.innerHTML = '<option value="">请选择管理医生</option>' + doctors.map(d => `<option value="${d}">${d}</option>`).join('');
+      } else if (currentRole === 'doctor') {
+        field.style.display = '';
+        sel.innerHTML = '<option value="李医生">李医生（本人）</option>';
+        sel.value = '李医生';
+      } else {
+        showToast('当前角色演示：请切换到「科研助理」或「医生」后新增病案');
+        return;
+      }
+      document.getElementById('add-case-modal').classList.add('active');
+    }
+
+    function closeAddCaseModal(e) {
+      if (e && e.target !== document.getElementById('add-case-modal')) return;
+      document.getElementById('add-case-modal').classList.remove('active');
+    }
+
+    function confirmAddCase() {
+      const doctor = document.getElementById('add-case-doctor').value;
+      if (currentRole === 'assistant' && !doctor) {
+        showToast('请选择管理医生（必选）');
+        return;
+      }
+      showToast('病案已创建，管理医生：' + (doctor || '本人'));
+      closeAddCaseModal();
+      document.getElementById('add-case-modal').classList.remove('active');
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-item').forEach(el => el.classList.toggle('active', el.dataset.tab === tab));
+      document.querySelectorAll('.tab-panel').forEach(el => el.classList.toggle('active', el.id === 'panel-' + tab));
+      if (tab === 'analysis') requestAnimationFrame(drawAllCharts);
+    }
+
+    let matrixSortCol = -1;
+    let matrixSortAsc = false;
+    let comparePage = 1;
+    let matrixPage = 1;
+    let doctorComparePage = 1;
+    let doctorMatrixPage = 1;
+    const PAGE_SIZE = 10;
+
+    // 示意：扩展医院列表用于分页演示
+    const HOSPITAL_PROGRESS = [
+      { name: '医院A', enroll: 120, follow: 98, rate: 82, complete: 90 },
+      { name: '医院B', enroll: 85, follow: 70, rate: 82, complete: 88 },
+      { name: '医院C', enroll: 78, follow: 62, rate: 79, complete: 86 },
+      { name: '医院D', enroll: 66, follow: 55, rate: 83, complete: 91 },
+      { name: '医院E', enroll: 58, follow: 48, rate: 83, complete: 87 },
+      { name: '医院F', enroll: 52, follow: 41, rate: 79, complete: 85 },
+      { name: '医院G', enroll: 47, follow: 39, rate: 83, complete: 89 },
+      { name: '医院H', enroll: 41, follow: 33, rate: 80, complete: 84 },
+      { name: '医院I', enroll: 36, follow: 29, rate: 81, complete: 88 },
+      { name: '医院J', enroll: 33, follow: 28, rate: 85, complete: 82 },
+      { name: '医院K', enroll: 28, follow: 22, rate: 79, complete: 86 },
+      { name: '医院L', enroll: 22, follow: 18, rate: 82, complete: 90 }
+    ].sort((a, b) => b.enroll - a.enroll);
+
+    const DOCTOR_PROGRESS_B = [
+      { name: '赵医生', hospital: '医院B', dept: '皮肤科', enroll: 22, follow: 18, rate: 82, complete: 90 },
+      { name: '周医生', hospital: '医院B', dept: '皮肤科', enroll: 18, follow: 15, rate: 83, complete: 88 },
+      { name: '钱医生', hospital: '医院B', dept: '过敏科', enroll: 15, follow: 12, rate: 80, complete: 86 },
+      { name: '孙医生', hospital: '医院B', dept: '皮肤科', enroll: 12, follow: 9, rate: 75, complete: 84 },
+      { name: '吴医生', hospital: '医院B', dept: '过敏科', enroll: 10, follow: 8, rate: 80, complete: 87 },
+      { name: '郑医生', hospital: '医院B', dept: '皮肤科', enroll: 8, follow: 6, rate: 75, complete: 85 }
+    ].sort((a, b) => b.enroll - a.enroll);
+
+    const DOCTOR_PROGRESS_DEPT = [
+      { name: '李医生', hospital: '医院A', dept: '皮肤科', enroll: 12, follow: 10, rate: 83, complete: 92 },
+      { name: '张医生', hospital: '医院A', dept: '皮肤科', enroll: 10, follow: 8, rate: 80, complete: 88 },
+      { name: '王医生', hospital: '医院A', dept: '皮肤科', enroll: 8, follow: 6, rate: 75, complete: 85 },
+      { name: '赵医生', hospital: '医院A', dept: '皮肤科', enroll: 5, follow: 4, rate: 80, complete: 84 },
+      { name: '钱医生', hospital: '医院A', dept: '皮肤科', enroll: 3, follow: 2, rate: 67, complete: 80 }
+    ].sort((a, b) => b.enroll - a.enroll);
+
+    function getFilteredMatrixList() {
+      const f = matrixFilterApplied;
+      if (matrixKind === 'hospital') {
+        let list = HOSPITAL_PROGRESS.slice();
+        if (f.hospitals.length) list = list.filter(h => f.hospitals.includes(h.name));
+        if (f.depts.length || f.doctors.length) {
+          list = list.filter(h => {
+            const tree = ORG_TREE[h.name];
+            if (!tree) return !f.depts.length && !f.doctors.length;
+            if (f.doctors.length) {
+              return Object.entries(tree).some(([d, docs]) =>
+                (!f.depts.length || f.depts.includes(d)) && docs.some(doc => f.doctors.includes(doc)));
+            }
+            return f.depts.some(d => !!tree[d]);
+          });
+        }
+        return list;
+      }
+      let list = (matrixKind === 'doctorDept' ? DOCTOR_PROGRESS_DEPT : DOCTOR_PROGRESS_B).slice();
+      if (f.hospitals.length) list = list.filter(d => f.hospitals.includes(d.hospital));
+      if (f.depts.length) list = list.filter(d => f.depts.includes(d.dept));
+      if (f.doctors.length) list = list.filter(d => f.doctors.includes(d.name));
+      return list;
+    }
+
+    function pagerHtml(prefix, page, total, jumpFn) {
+      const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+      let nums = '';
+      for (let i = 1; i <= pages; i++) {
+        nums += `<button class="btn btn-sm ${i===page?'btn-primary':'btn-outline'}" style="min-width:32px" onclick="${jumpFn}(${i})">${i}</button>`;
+      }
+      return `<div style="display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" ${page<=1?'disabled':''} onclick="${jumpFn}(${page-1})">上一页</button>
+        ${nums}
+        <button class="btn btn-outline btn-sm" ${page>=pages?'disabled':''} onclick="${jumpFn}(${page+1})">下一页</button>
+        <span style="font-size:12px;color:#9ca3af">共 ${total} 条 · 每页 ${PAGE_SIZE}</span>
+      </div>`;
+    }
+
+    function slicePage(list, page) {
+      const start = (page - 1) * PAGE_SIZE;
+      return list.slice(start, start + PAGE_SIZE);
+    }
+
+    function setComparePage(p) {
+      const max = Math.ceil(HOSPITAL_PROGRESS.length / PAGE_SIZE) || 1;
+      comparePage = Math.min(Math.max(1, p), max);
+      renderProgress();
+    }
+    function setMatrixPage(p) {
+      const list = getFilteredMatrixList();
+      const max = Math.ceil(list.length / PAGE_SIZE) || 1;
+      matrixPage = Math.min(Math.max(1, p), max);
+      renderMatrixTableOnly();
+    }
+    function setDoctorComparePage(p) {
+      doctorComparePage = Math.max(1, p);
+      renderProgress();
+    }
+    function setDoctorMatrixPage(p) {
+      const list = getFilteredMatrixList();
+      const max = Math.ceil(list.length / PAGE_SIZE) || 1;
+      doctorMatrixPage = Math.min(Math.max(1, p), max);
+      renderMatrixTableOnly();
+    }
+
+    function sortHospitalMatrix(colIndex) {
+      if (matrixSortCol === colIndex) matrixSortAsc = !matrixSortAsc;
+      else { matrixSortCol = colIndex; matrixSortAsc = false; }
+      const keys = ['enroll', 'follow', 'rate', 'complete'];
+      const key = keys[colIndex - 1];
+      HOSPITAL_PROGRESS.sort((a, b) => matrixSortAsc ? a[key] - b[key] : b[key] - a[key]);
+      matrixPage = 1;
+      renderMatrixTableOnly();
+      showToast('已按列排序');
+    }
+
+    function sortDoctorMatrix(colIndex, source) {
+      const list = source === 'dept' ? DOCTOR_PROGRESS_DEPT : DOCTOR_PROGRESS_B;
+      if (matrixSortCol === colIndex) matrixSortAsc = !matrixSortAsc;
+      else { matrixSortCol = colIndex; matrixSortAsc = false; }
+      const keys = ['enroll', 'follow', 'rate', 'complete'];
+      const key = keys[colIndex - 1];
+      list.sort((a, b) => matrixSortAsc ? a[key] - b[key] : b[key] - a[key]);
+      doctorMatrixPage = 1;
+      renderMatrixTableOnly();
+    }
+    function sortDoctorMatrixHospital(c) { sortDoctorMatrix(c, 'hospital'); }
+    function sortDoctorMatrixDept(c) { sortDoctorMatrix(c, 'dept'); }
+
+    function renderOverview() {
+      const r = ROLES[currentRole];
+      document.getElementById('overview-kpi').innerHTML = r.kpi.map(k => `
+        <div class="kpi-card">
+          <div class="kpi-label">${k.label}</div>
+          <div class="kpi-value">${k.value}</div>
+          <div class="kpi-sub">${k.sub || ''}</div>
+        </div>
+      `).join('');
+      document.getElementById('overview-stats').innerHTML = r.stats.map(s => `
+        <div class="stat-card"><div class="stat-label">${s.label}</div><div class="stat-value">${s.value}</div><div class="stat-pct">${s.pct}</div></div>
+      `).join('');
+    }
+
+    function renderCompareList(list, page, jumpFn, kind) {
+      const pageList = slicePage(list, page);
+      const maxEnroll = list[0] ? list[0].enroll : 1;
+      return `
+        <div class="center-compare">
+          ${pageList.map(h => {
+            const pct = Math.max(8, Math.round(h.enroll / maxEnroll * 100));
+            const click = kind === 'hospital'
+              ? `drillDown('${h.name}', ${h.enroll}, ${h.follow}, ${h.rate}, ${h.complete})`
+              : `showToast('${h.name}：入组 ${h.enroll} · 随访率 ${h.rate}% · 数据完整率 ${h.complete}%')`;
+            return `<div class="center-row" onclick="${click}">
+              <div class="center-name">${h.name}</div>
+              <div class="center-bar-wrap"><div class="center-bar"><div class="center-bar-fill good" style="width:${pct}%"></div></div></div>
+              <div class="center-stats">入组 ${h.enroll} 人</div>
+            </div>`;
+          }).join('')}
+        </div>
+        ${pagerHtml(kind, page, list.length, jumpFn)}`;
+    }
+
+    function renderMetricMatrix(list, page, jumpFn, sortFn, nameHeader) {
+      const pageList = slicePage(list, page);
+      return `
+        <table class="data-table">
+          <thead><tr>
+            <th>${nameHeader}</th>
+            <th style="cursor:pointer" onclick="${sortFn}(1)">入组人数 ↕</th>
+            <th style="cursor:pointer" onclick="${sortFn}(2)">随访人数 ↕</th>
+            <th style="cursor:pointer" onclick="${sortFn}(3)">随访率 ↕</th>
+            <th style="cursor:pointer" onclick="${sortFn}(4)">数据完整率 ↕</th>
+          </tr></thead>
+          <tbody>
+            ${pageList.length ? pageList.map(h => `<tr>
+              <td>${h.name}</td><td>${h.enroll}</td><td>${h.follow}</td><td>${h.rate}%</td><td>${h.complete}%</td>
+            </tr>`).join('') : '<tr><td colspan="5" style="color:#9ca3af">无匹配数据</td></tr>'}
+          </tbody>
+        </table>
+        ${pagerHtml('matrix', page, list.length, jumpFn)}`;
+    }
+
+    function renderMatrixTableOnly() {
+      const wrap = document.getElementById('matrix-table-wrap');
+      if (!wrap) return;
+      const list = getFilteredMatrixList();
+      if (matrixKind === 'hospital') {
+        wrap.innerHTML = renderMetricMatrix(list, matrixPage, 'setMatrixPage', 'sortHospitalMatrix', '医院');
+      } else if (matrixKind === 'doctorHospital') {
+        wrap.innerHTML = renderMetricMatrix(list, doctorMatrixPage, 'setDoctorMatrixPage', 'sortDoctorMatrixHospital', '医生');
+      } else if (matrixKind === 'doctorDept') {
+        wrap.innerHTML = renderMetricMatrix(list, doctorMatrixPage, 'setDoctorMatrixPage', 'sortDoctorMatrixDept', '医生');
+      }
+    }
+
+    function renderProgress() {
+      const secondary = document.getElementById('progress-secondary-card');
+      const titleEl = document.getElementById('matrix-title');
+      // 进度页不展示顶部 KPI 总览（仅总览 Tab 展示）
+      if (currentRole === 'multiCenterAdmin' || currentRole === 'superAdmin') {
+        matrixKind = 'hospital';
+        document.getElementById('progress-main-card').innerHTML =
+          '<div class="card-title">各医院入组人数对比（从高到低 · 每页10家）</div>' +
+          renderCompareList(HOSPITAL_PROGRESS, comparePage, 'setComparePage', 'hospital');
+        if (secondary) secondary.style.display = '';
+        if (titleEl) titleEl.textContent = '医院 × 指标矩阵（可排序 · 每页10家）';
+        setupFiltersForRole(currentRole);
+        renderMatrixTableOnly();
+      } else if (currentRole === 'hospitalAdmin') {
+        matrixKind = 'doctorHospital';
+        document.getElementById('progress-main-card').innerHTML =
+          '<div class="card-title">本院医生入组人数对比（从高到低）</div>' +
+          renderCompareList(DOCTOR_PROGRESS_B, doctorComparePage, 'setDoctorComparePage', 'doctor');
+        if (secondary) secondary.style.display = '';
+        if (titleEl) titleEl.textContent = '医生 × 指标矩阵（可排序）';
+        setupFiltersForRole(currentRole);
+        renderMatrixTableOnly();
+      } else if (currentRole === 'deptDirector') {
+        matrixKind = 'doctorDept';
+        document.getElementById('progress-main-card').innerHTML =
+          '<div class="card-title">本科室医生入组人数对比（从高到低）</div>' +
+          renderCompareList(DOCTOR_PROGRESS_DEPT, doctorComparePage, 'setDoctorComparePage', 'doctor');
+        if (secondary) secondary.style.display = '';
+        if (titleEl) titleEl.textContent = '医生 × 指标矩阵（可排序）';
+        setupFiltersForRole(currentRole);
+        renderMatrixTableOnly();
+      } else if (currentRole === 'doctor' || currentRole === 'assistant') {
+        if (secondary) secondary.style.display = 'none';
+        const title = currentRole === 'assistant' ? '绑定医生汇总（并集）' : '我的汇总';
+        document.getElementById('progress-main-card').innerHTML = `
+          <div class="card-title">${title}</div>
+          <div class="stat-grid" style="grid-template-columns:repeat(4,1fr)">
+            <div class="stat-card"><div class="stat-label">入组人数</div><div class="stat-value">${currentRole==='assistant'?17:7}</div></div>
+            <div class="stat-card"><div class="stat-label">随访人数</div><div class="stat-value">${currentRole==='assistant'?14:5}</div></div>
+            <div class="stat-card"><div class="stat-label">随访率</div><div class="stat-value">${currentRole==='assistant'?'82%':'71%'}</div></div>
+            <div class="stat-card"><div class="stat-label">数据完整率</div><div class="stat-value">${currentRole==='assistant'?'90%':'92%'}</div></div>
+          </div>`;
+      } else {
+        if (secondary) secondary.style.display = 'none';
+        document.getElementById('progress-main-card').innerHTML = `
+          <div class="card-title">授权范围汇总</div>
+          <div class="stat-grid" style="grid-template-columns:repeat(4,1fr)">
+            <div class="stat-card"><div class="stat-label">入组人数</div><div class="stat-value">220</div></div>
+            <div class="stat-card"><div class="stat-label">随访人数</div><div class="stat-value">180</div></div>
+            <div class="stat-card"><div class="stat-label">随访率</div><div class="stat-value">82%</div></div>
+            <div class="stat-card"><div class="stat-label">数据完整率</div><div class="stat-value">89%</div></div>
+          </div>
+          <p style="font-size:12px;color:#9ca3af;margin-top:8px">科研人员：角色指派管辖范围内可看仪表板汇总；下载仅限本账户病案数据</p>`;
+      }
+    }
+
+    function renderDetail() {
+      const r = ROLES[currentRole];
+      document.getElementById('detail-thead').innerHTML = '<tr>' + r.detailCols.map(c => `<th>${c}</th>`).join('') + '</tr>';
+      document.getElementById('detail-tbody').innerHTML = r.detailRows.map(row => {
+        const cells = row.map((cell, i) => {
+          if (cell === '进行中') return `<td><span class="badge badge-blue">${cell}</span></td>`;
+          if (cell === '已完成') return `<td><span class="badge badge-green">${cell}</span></td>`;
+          if (cell === '超时') return `<td><span class="badge badge-red">${cell}</span></td>`;
+          if (cell === '详情') return `<td><button class="btn btn-link btn-sm" onclick="showToast('跳转我的病案详情')">详情</button></td>`;
+          if (cell === '督办') return `<td><button class="btn btn-primary btn-sm" onclick="showToast('督办通知已发送')">督办</button></td>`;
+          return `<td>${cell}</td>`;
+        }).join('');
+        return `<tr>${cells}</tr>`;
+      }).join('');
+    }
+
+    const ANALYSIS_CHARTS = {
+      diagnosis: {
+        pill: '合并症',
+        labels: ['糖尿病', '高血压', '嗜酸性粒细胞…', '便秘', '支气管扩张伴…'],
+        values: [4, 4, 3, 3, 2],
+        pcts: [50, 50, 38, 38, 25]
+      },
+      treatment: {
+        pill: '治疗药物',
+        labels: ['泼尼松', '司普奇拜单抗', '氯化钾缓释片', '地塞米松', '卤米松乳膏'],
+        values: [6, 3, 2, 2, 2],
+        pcts: [67, 33, 22, 22, 22]
+      },
+      questionnaire: {
+        pill: '问卷填写情况',
+        labels: ['BPDAI'],
+        values: [6],
+        pcts: [100]
+      },
+      lab: {
+        pill: '实验室检查项目',
+        labels: ['免疫学检查', '微生物培养', 'CT检查', '心电图', 'HRCT检查'],
+        values: [8, 2, 2, 2, 2],
+        pcts: [100, 25, 25, 25, 25]
+      }
+    };
+    let currentAnalysisSub = 'diagnosis';
+
+    function drawBarLineChart(canvasId, labels, values, pcts) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      canvas.style.width = rect.width + 'px';
+      canvas.style.height = rect.height + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const W = rect.width, H = rect.height;
+      const pad = { t: 28, r: 36, b: 48, l: 36 };
+      const chartW = W - pad.l - pad.r, chartH = H - pad.t - pad.b;
+      const maxV = Math.max(Math.max(...values) * 1.15, 1);
+      ctx.clearRect(0, 0, W, H);
+
+      // grid only — no corner axis titles（表左上角标识已删）
+      ctx.strokeStyle = '#e5e7eb';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 5; i++) {
+        const y = pad.t + (chartH / 5) * i;
+        ctx.beginPath();
+        ctx.moveTo(pad.l, y);
+        ctx.lineTo(pad.l + chartW, y);
+        ctx.stroke();
+      }
+
+      const n = labels.length;
+      const barW = Math.min(chartW / n * 0.45, 72);
+      const points = [];
+
+      values.forEach((v, i) => {
+        const cx = pad.l + (i + 0.5) * chartW / n;
+        const x = cx - barW / 2;
+        const h = (v / maxV) * chartH;
+        ctx.fillStyle = '#f9a8a8';
+        ctx.fillRect(x, pad.t + chartH - h, barW, h);
+
+        const p = pcts[i];
+        const y = pad.t + chartH - (p / 100) * chartH;
+        points.push({ x: cx, y, v });
+
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'center';
+        const label = labels[i].length > 8 ? labels[i].slice(0, 7) + '…' : labels[i];
+        ctx.fillText(label, cx, H - pad.b + 16);
+      });
+
+      ctx.strokeStyle = '#dc2626';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      points.forEach((pt, i) => (i === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y)));
+      ctx.stroke();
+
+      points.forEach(pt => {
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+        ctx.strokeStyle = '#dc2626';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = '#111827';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(String(pt.v), pt.x, pt.y - 10);
+      });
+    }
+
+    function drawAllCharts() {
+      const cfg = ANALYSIS_CHARTS[currentAnalysisSub] || ANALYSIS_CHARTS.diagnosis;
+      const pill = document.getElementById('analysis-pill');
+      if (pill) pill.textContent = cfg.pill;
+      drawBarLineChart('analysis-chart', cfg.labels, cfg.values, cfg.pcts);
+    }
+
+    function drillDown(center, enroll, follow, rate, complete) {
+      document.getElementById('drawer-title').textContent = center + ' 汇总';
+      document.getElementById('drawer-body').innerHTML = `
+        <div class="stat-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:16px">
+          <div class="stat-card"><div class="stat-label">入组人数</div><div class="stat-value">${enroll}</div></div>
+          <div class="stat-card"><div class="stat-label">随访人数</div><div class="stat-value">${follow}</div></div>
+          <div class="stat-card"><div class="stat-label">随访率</div><div class="stat-value">${rate}%</div></div>
+          <div class="stat-card"><div class="stat-label">数据完整率</div><div class="stat-value">${complete}%</div></div>
+        </div>
+        <p style="font-size:13px;color:#6b7280;margin-bottom:12px">按科室分布（仅汇总人数，无患者明细）：</p>
+        <table class="data-table"><thead><tr><th>科室</th><th>入组人数</th><th>随访人数</th></tr></thead>
+        <tbody>
+          <tr><td>皮肤科</td><td>${Math.round(enroll*0.6)}</td><td>${Math.round(follow*0.6)}</td></tr>
+          <tr><td>过敏科</td><td>${Math.round(enroll*0.4)}</td><td>${Math.round(follow*0.4)}</td></tr>
+        </tbody></table>`;
+      document.getElementById('drawer-overlay').classList.add('active');
+    }
+
+    function closeDrawer(e) {
+      if (e && e.target !== document.getElementById('drawer-overlay')) return;
+      document.getElementById('drawer-overlay').classList.remove('active');
+    }
+
+    function switchAnalysisSub(sub) {
+      currentAnalysisSub = sub;
+      document.querySelectorAll('#panel-analysis .sub-tab').forEach((el, i) => {
+        const keys = ['diagnosis', 'treatment', 'questionnaire', 'lab'];
+        el.classList.toggle('active', keys[i] === sub);
+      });
+      drawAllCharts();
+    }
+
+    function toggleDropdown(id) {
+      document.querySelectorAll('.dropdown-menu').forEach(m => { if (m.id !== id) m.classList.remove('active'); });
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('active');
+    }
+
+    /** 原型占位：下载本账户病案数据；管理员仅已勾选并发布明细授权时可下管辖范围明细 */
+    function downloadAccountReport() {
+      const r = ROLES[currentRole];
+      if (currentRole === 'researcher') {
+        showToast('已开始下载本账户病案数据（脱敏）…科研人员不可下管辖范围跨主体明细（原型占位）');
+        return;
+      }
+      if (currentRole === 'assistant') {
+        const shared = r.sharedDoctors || [];
+        if (shared.length) {
+          showToast('已开始下载共享医生（' + shared.join('、') + '）的全部病案数据（脱敏）…（原型占位）');
+        } else {
+          showToast('当前无「共享数据」的医生，仅可下载本账户代录相关数据（原型占位）');
+        }
+        return;
+      }
+      if (['multiCenterAdmin', 'hospitalAdmin', 'deptDirector'].includes(currentRole)) {
+        if (r.detailGranted) {
+          showToast('已开始下载管辖范围病案明细（脱敏）…该账户明细下载已发布生效（原型占位）');
+        } else {
+          showToast('当前仅可下载本账户病案数据；管辖范围明细须超管在「明细下载授权」勾选并发布后才可下（原型占位）');
+        }
+        return;
+      }
+      showToast('已开始下载本账户病案全部数据（脱敏报告）…（原型占位，与仪表板筛选无关）');
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    function toggleDevMenu() {
+      document.getElementById('dev-menu').classList.toggle('active');
+    }
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.dropdown')) document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('active'));
+    });
+
+    window.addEventListener('resize', drawAllCharts);
+
+    // 初始化：默认多中心管理员
+    setRole('multiCenterAdmin');
+  </script>
+</body>
+</html>
